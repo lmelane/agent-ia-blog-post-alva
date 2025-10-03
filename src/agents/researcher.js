@@ -12,7 +12,7 @@ export class ResearcherAgent {
    * Build research prompt for deep investigation of selected topic
    */
   buildResearchPrompt(topic) {
-    return `Tu es un chercheur expert Finance x IA chargé de compiler un DOSSIER ÉDITORIAL ULTRA-COMPLET.
+    return `Tu es un journaliste d'investigation Finance x IA qui prépare un article GRAND PUBLIC ultra-pédagogique et accrocheur.
 
 📁 SUJET SÉLECTIONNÉ:
 Titre: ${topic.titre}
@@ -24,8 +24,13 @@ Sources initiales (${topic.sources?.length || 0}):
 ${topic.sources?.map((s, i) => `[${i+1}] ${s.titre}: ${s.url}`).join('\n') || 'Aucune'}
 
 🎯 MISSION CRITIQUE:
-Effectuer des recherches APPROFONDIES sur ce sujet pour créer un dossier éditorial complet.
-Le Writer a besoin d'un maximum de matière pour rédiger un article riche de 1200-1500 mots style Les Échos.
+Compiler un dossier éditorial ULTRA-COMPLET pour un article destiné à des DÉCIDEURS NON-TECHNIQUES.
+Le Writer doit pouvoir rédiger un article de 1200-1500 mots qui :
+- VULGARISE sans simplifier à l'excès
+- ACCROCHE et maintient l'attention
+- VEND l'opportunité business
+- INSPIRE et donne envie d'agir
+- Montre qu'on a fait des RECHERCHES APPROFONDIES
 
 🔍 RECHERCHES À EFFECTUER:
 
@@ -43,13 +48,13 @@ Le Writer a besoin d'un maximum de matière pour rédiger un article riche de 12
    - Statistiques sectorielles: taille du marché, nombre d'utilisateurs, volumes
    - Comparaisons temporelles: évolution sur 1 an, 5 ans, 10 ans
 
-3. CITATIONS D'EXPERTS (5-10 citations minimum):
-   - PDG, dirigeants d'entreprises concernées
-   - Analystes financiers (Goldman Sachs, Morgan Stanley, etc.)
-   - Experts sectoriels (consultants, chercheurs)
-   - Régulateurs, responsables politiques
-   - Clients, utilisateurs (témoignages)
-   Format: "Citation exacte" - Nom Prénom, Fonction, Entreprise
+3. CITATIONS & TÉMOIGNAGES INSPIRANTS (5-10 minimum):
+   - PDG, dirigeants : leurs VISIONS, leurs CONVICTIONS
+   - Success stories : "Comment X a transformé son business grâce à..."
+   - Témoignages clients : résultats concrets, ROI mesurable
+   - Experts qui VULGARISENT : analogies, métaphores accessibles
+   - Phrases PERCUTANTES qui donnent envie de citer
+   Format: "Citation inspirante et accessible" - Prénom Nom, Fonction simple, Entreprise
 
 4. CONTEXTE HISTORIQUE DÉTAILLÉ:
    - Timeline des événements clés (5-10 ans en arrière)
@@ -76,29 +81,42 @@ Le Writer a besoin d'un maximum de matière pour rédiger un article riche de 12
    - Points de débat dans l'industrie
    - Limites de la solution/technologie
 
-8. CAS D'USAGE & EXEMPLES CONCRETS:
-   - Entreprises qui utilisent déjà cette technologie/solution
-   - Résultats mesurables obtenus
-   - Success stories et échecs
-   - Applications pratiques dans différents secteurs
+8. ANALOGIES & MÉTAPHORES PUISSANTES:
+   - Comparaisons avec la vie quotidienne ("C'est comme si...")
+   - Métaphores visuelles et mémorables
+   - Exemples concrets que tout le monde comprend
+   - Vulgarisation sans infantiliser
 
-9. PERSPECTIVES D'AVENIR:
-   - Scénarios d'évolution (optimiste, pessimiste, réaliste)
-   - Prochaines étapes attendues
-   - Impacts à 1 an, 3 ans, 5 ans
-   - Tendances émergentes liées
+9. SUCCESS STORIES INSPIRANTES:
+   - Entreprises qui ont TRANSFORMÉ leur business
+   - Résultats CONCRETS et MESURABLES (ROI, économies, croissance)
+   - Témoignages de dirigeants enthousiastes
+   - "Avant/Après" spectaculaires
+   - Échecs instructifs (ce qu'il ne faut PAS faire)
 
-10. ANGLE ÉDITORIAL AFFÛTÉ:
-    - Pourquoi cette actualité est VRAIMENT importante MAINTENANT
-    - Ce qui la rend unique/différente
-    - L'angle qui intéressera les décideurs finance
-    - Le message clé à retenir
+10. OPPORTUNITÉS BUSINESS CONCRÈTES:
+    - Comment les lecteurs peuvent EN PROFITER
+    - Actions concrètes à entreprendre
+    - Investissements à considérer
+    - Tendances à suivre
+    - "Et vous, qu'allez-vous faire ?"
 
-QUESTIONS CENTRALES (5-8 questions):
-Lister les questions que se posent les lecteurs professionnels:
-- Questions stratégiques (impact business)
-- Questions opérationnelles (comment ça marche)
-- Questions prospectives (et demain ?)
+11. ANGLE ÉDITORIAL VENDEUR:
+    - Hook principal : pourquoi c'est EXCITANT
+    - Ce qui rend cette actu UNIQUE et IMPORTANTE
+    - L'opportunité à NE PAS MANQUER
+    - Le message inspirant à retenir
+    - La vision d'avenir enthousiasmante
+
+QUESTIONS CENTRALES (5-8 questions ACCESSIBLES):
+Lister les questions que se posent les DÉCIDEURS NON-TECHNIQUES:
+- "Pourquoi devrais-je m'y intéresser ?" (pertinence personnelle)
+- "Comment ça marche, en simple ?" (vulgarisation)
+- "Quels bénéfices concrets pour mon business ?" (ROI)
+- "Qui le fait déjà et avec quels résultats ?" (preuve sociale)
+- "Quels sont les risques ?" (transparence)
+- "Par où commencer ?" (action concrète)
+- "Que va-t-il se passer dans 2-3 ans ?" (vision future)
 
 FORMAT DE RÉPONSE JSON:
 {
@@ -168,28 +186,39 @@ FORMAT DE RÉPONSE JSON:
       "risques": ["Risque de concentration", "Risque de dépendance"],
       "debats": "Points de débat dans l'industrie"
     },
-    "casUsageExemples": [
+    "analogiesMetaphores": [
+      {
+        "concept": "Concept technique à vulgariser",
+        "analogie": "C'est comme si vous aviez un assistant personnel qui...",
+        "explication": "Explication simple et visuelle"
+      }
+    ],
+    "successStories": [
       {
         "entreprise": "Company Y",
         "secteur": "Banking",
-        "application": "Détection fraude en temps réel",
-        "resultats": "Réduction fraude de 60%, économies 10M$/an"
+        "situation_avant": "Problème rencontré, coûts, inefficacités",
+        "solution_adoptee": "Ce qu'ils ont mis en place",
+        "resultats_apres": "ROI concret: -60% fraude, +10M$ économies/an, +25% satisfaction client",
+        "citation_dirigeant": "Citation inspirante du CEO sur la transformation"
       }
     ],
+    "opportunitesBusinessLecteurs": {
+      "pourquoi_agir_maintenant": "Urgence et opportunité du moment",
+      "actions_concretes": ["Action 1 à entreprendre", "Action 2 à considérer"],
+      "investissements_surveiller": ["Secteur 1", "Technologie 2"],
+      "tendances_suivre": ["Tendance 1", "Tendance 2"],
+      "premier_pas": "Par où commencer concrètement"
+    },
     "perspectivesFutur": {
-      "court_terme": "Évolutions attendues 6-12 mois",
-      "moyen_terme": "Impacts à 2-3 ans",
-      "long_terme": "Vision 5-10 ans",
-      "scenarios": {
-        "optimiste": "Scénario best case",
-        "realiste": "Scénario probable",
-        "pessimiste": "Scénario worst case"
-      }
+      "vision_enthousiasmante": "Ce qui va changer dans 2-3 ans (ton optimiste)",
+      "opportunites_emergentes": ["Opportunité 1", "Opportunité 2"],
+      "conseil_final": "Message inspirant et actionnable"
     },
     "syntheseRecherche": {
-      "pointsCles": ["Point clé 1", "Point clé 2", "Point clé 3"],
-      "messagesPrincipaux": ["Message 1", "Message 2"],
-      "elementsDifferenciants": "Ce qui rend ce sujet unique"
+      "hook_principal": "L'accroche qui donne envie de lire",
+      "message_cle": "Le message à retenir absolument",
+      "appel_action": "Ce que le lecteur doit faire après avoir lu"
     }
   }
 }
