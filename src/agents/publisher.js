@@ -313,11 +313,49 @@ export class PublisherAgent {
   }
 
   /**
+   * Get site domains
+   */
+  async getSiteDomains() {
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/sites/${this.siteId}/domains`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'accept': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return [];
+      }
+
+      const data = await response.json();
+      return data.domains || [];
+    } catch (error) {
+      logger.warn('Could not get site domains', error);
+      return [];
+    }
+  }
+
+  /**
    * Publish Webflow site to make changes live
    */
   async publishSite() {
     try {
       logger.info('📤 Publishing Webflow site...');
+      
+      // Get domains
+      const domains = await this.getSiteDomains();
+      
+      if (domains.length === 0) {
+        logger.warn('No domains found, skipping site publish');
+        return false;
+      }
+
+      // Publish to all domains
+      const domainIds = domains.map(d => d.id);
       
       const response = await fetch(
         `${this.apiUrl}/sites/${this.siteId}/publish`,
@@ -325,10 +363,11 @@ export class PublisherAgent {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
             'accept': 'application/json',
           },
           body: JSON.stringify({
-            publishToWebflowSubdomain: true,
+            domains: domainIds,
           }),
         }
       );
