@@ -4,6 +4,8 @@ import cron from 'node-cron';
 import config from './config.js';
 import logger from './utils/logger.js';
 import Pipeline from './pipeline.js';
+import { initDatabase } from './utils/database.js';
+import { startServer } from './api/server.js';
 
 /**
  * Main entry point - Runs as a scheduled daemon
@@ -12,6 +14,24 @@ class ArticleAgentDaemon {
   constructor() {
     this.pipeline = new Pipeline();
     this.isRunning = false;
+  }
+
+  /**
+   * Initialize application
+   */
+  async initialize() {
+    try {
+      // Initialize database
+      await initDatabase();
+      
+      // Start API server
+      startServer();
+      
+      logger.success('✅ Application initialized successfully');
+    } catch (error) {
+      logger.error('Failed to initialize application', error);
+      throw error;
+    }
   }
 
   /**
@@ -48,8 +68,12 @@ class ArticleAgentDaemon {
   /**
    * Start the daemon with cron scheduler
    */
-  start() {
+  async start() {
     logger.info('🚀 Starting AI Article Agent Daemon');
+    
+    // Initialize database and server
+    await this.initialize();
+    
     logger.info(`⏰ Schedule: Daily at 09:00 (${config.schedule.timezone})`);
     logger.info(`📁 Output directory: ${config.output.articlesDir}`);
     logger.info(`🎯 Topics: ${config.topics.join(', ')}`);

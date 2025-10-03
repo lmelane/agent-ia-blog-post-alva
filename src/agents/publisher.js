@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import fs from 'fs/promises';
 import logger from '../utils/logger.js';
+import { saveArticle } from '../utils/database.js';
 
 /**
  * Publisher Agent - Publishes articles to Webflow CMS
@@ -240,6 +241,26 @@ export class PublisherAgent {
       logger.info(`Item ID: ${data.id}`);
       logger.info(`Slug: ${data.fieldData.slug}`);
 
+      // Save to database with thumbnail
+      const thumbnailData = frontMatter.thumbnail?.localPath 
+        ? await fs.readFile(frontMatter.thumbnail.localPath)
+        : null;
+
+      const dbResult = await saveArticle({
+        title: frontMatter.title,
+        slug: frontMatter.slug,
+        category: frontMatter.category,
+        excerpt: frontMatter.excerpt,
+        content: articleWithSources,
+        thumbnailData,
+        thumbnailFilename: frontMatter.thumbnail?.filename,
+        webflowItemId: data.id,
+        metadata: frontMatter,
+      });
+
+      logger.success(`✅ Article saved to database with public thumbnail URL`);
+      logger.info(`Thumbnail URL: ${dbResult.thumbnailUrl}`);
+
       // Publish site to make article live
       await this.publishSite();
 
@@ -248,6 +269,7 @@ export class PublisherAgent {
         itemId: data.id,
         slug: data.fieldData.slug,
         url: `https://yoursite.webflow.io/blog/${data.fieldData.slug}`,
+        thumbnailUrl: dbResult.thumbnailUrl,
       };
     } catch (error) {
       logger.error('Failed to publish to Webflow', error);
