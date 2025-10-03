@@ -28,28 +28,20 @@ export class ThumbnailAgent {
     // Extract key concepts to create varied visuals
     const visualDirection = this.extractVisualConcepts(articleTitle, articleSummary);
     
-    // Keep summary short to stay under 2560 char limit
-    const shortSummary = articleSummary.substring(0, 200);
-    
-    const basePrompt = `Ultra-realistic professional photograph for tech blog.
+    const basePrompt = `Professional photograph, 8K quality, cinematic lighting, 16:9 format.
 
-TOPIC: ${articleTitle}
-
-VISUAL CONCEPT:
 ${visualDirection}
 
-STYLE: Photorealistic 8K quality, professional DSLR aesthetic (Canon R5/Sony A7R IV), cinematic lighting, 16:9 horizontal format.
+STRICT RULES:
+- NO computers, NO laptops, NO monitors, NO screens
+- NO people at desks, NO office scenes
+- NO generic tech stock photos
+- Focus on abstract concepts, metaphors, or specific objects
+- Creative, unique, artistic interpretation
 
-REQUIREMENTS:
-- Sharp focus, perfect exposure, color grading
-- Modern, clean, minimalist composition
-- NO text, logos, watermarks, UI elements
-- NO recognizable faces
-- Unique visual that avoids generic "person at computer" stock photos
+STYLE: Magazine-quality, sharp focus, professional color grading, modern aesthetic.
 
-MOOD: Professional, innovative, trustworthy, futuristic
-
-Create a stunning, magazine-quality image specific to this AI/tech topic.`;
+Create something visually striking and different.`;
     
     return basePrompt;
   }
@@ -61,33 +53,41 @@ Create a stunning, magazine-quality image specific to this AI/tech topic.`;
     const lowerTitle = title.toLowerCase();
     const lowerSummary = summary.toLowerCase();
     
-    // Detect specific themes and suggest unique visuals (concise)
+    // Detect specific themes and suggest CREATIVE visuals (NO screens/computers)
     if (lowerTitle.includes('financement') || lowerTitle.includes('levée') || lowerTitle.includes('investissement') || lowerTitle.includes('funding')) {
-      return 'Financial growth charts, stock market displays, investment visualization, venture capital concept. Avoid generic offices.';
+      return 'VISUAL: Golden coins stacked in growth pattern, money tree with glowing leaves, upward arrow made of currency, venture capital rocket launch, investment growth represented by ascending stairs of gold bars. Creative financial metaphor.';
     }
     
     if (lowerTitle.includes('partenariat') || lowerTitle.includes('collaboration') || lowerTitle.includes('partner')) {
-      return 'Connected networks, interlocking gears, puzzle pieces, collaborative tech workspace. Avoid standard meeting rooms.';
+      return 'VISUAL: Two puzzle pieces connecting with light between them, interlocking metal gears in motion, handshake sculpture, bridge connecting two islands, merging rivers, collaborative art installation. Partnership metaphor.';
     }
     
     if (lowerTitle.includes('régulation') || lowerTitle.includes('loi') || lowerTitle.includes('politique') || lowerTitle.includes('regulation')) {
-      return 'Legal documents with tech overlay, balance scales, policy frameworks, compliance symbols. Avoid boring paperwork.';
+      return 'VISUAL: Balance scales with glowing orbs, gavel on marble surface, legal books with golden edges, justice statue, regulatory framework represented by architectural structure, compliance shield. Legal/regulation concept.';
     }
     
     if (lowerTitle.includes('api') || lowerTitle.includes('plateforme') || lowerTitle.includes('outil') || lowerTitle.includes('platform')) {
-      return 'Code on screens, API visualization, developer tools, terminal windows, software architecture. Avoid empty laptops.';
+      return 'VISUAL: Interconnected nodes with light pathways, circuit board macro shot, fiber optic cables with light flowing, modular building blocks, API gateway represented by futuristic door/portal, data streams. Tech infrastructure.';
     }
     
-    if (lowerTitle.includes('gpt') || lowerTitle.includes('llm') || lowerTitle.includes('modèle') || lowerTitle.includes('model')) {
-      return 'Neural network visualization, AI brain concept, language processing, transformer architecture. Avoid generic AI imagery.';
+    if (lowerTitle.includes('gpt') || lowerTitle.includes('llm') || lowerTitle.includes('modèle') || lowerTitle.includes('model') || lowerTitle.includes('openai')) {
+      return 'VISUAL: Glowing neural pathways in 3D space, brain made of light particles, language represented by floating letters/symbols, transformer architecture as geometric structure, AI consciousness as abstract light formation. NO screens.';
     }
     
     if (lowerTitle.includes('automatisation') || lowerTitle.includes('automation')) {
-      return 'Robotic arms, automated assembly, workflow diagrams, industrial automation. Avoid simple computer screens.';
+      return 'VISUAL: Precision robotic arm in action, automated conveyor belt with products, mechanical gears in perfect sync, industrial automation machinery, 3D printer creating object, assembly line close-up. Industrial automation.';
     }
     
-    // Default: encourage variety
-    return 'Unique visual specific to this topic using metaphors, abstract tech concepts, or relevant technology. Avoid typical office/computer imagery.';
+    if (lowerTitle.includes('trading') || lowerTitle.includes('bourse') || lowerTitle.includes('stock')) {
+      return 'VISUAL: Bull and bear sculptures, trading floor bell, stock ticker tape, candlestick charts as 3D sculptures, market volatility as wave patterns, financial instruments. Trading concept.';
+    }
+    
+    if (lowerTitle.includes('crypto') || lowerTitle.includes('blockchain') || lowerTitle.includes('bitcoin')) {
+      return 'VISUAL: Physical Bitcoin coin with dramatic lighting, blockchain represented by chain links, cryptocurrency mining rig close-up, digital wallet as futuristic safe, crypto nodes network. Crypto/blockchain.';
+    }
+    
+    // Default: VERY creative
+    return 'VISUAL: Abstract representation using light, geometry, nature metaphors, or artistic installation. Think outside the box. Create something memorable and unique that represents innovation and technology WITHOUT showing computers or screens.';
   }
 
   /**

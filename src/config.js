@@ -39,21 +39,21 @@ export const config = {
     },
   },
   
-  // Topics
-  topics: (process.env.topics || 'artificial intelligence,machine learning,large language models,AI agents,generative AI,AI regulations')
+  // Topics (Finance x IA focus)
+  topics: (process.env.topics || 'AI in finance,fintech AI,algorithmic trading,robo-advisors,AI fraud detection,banking AI,insurance AI,wealth management AI')
     .split(',')
     .map(t => t.trim()),
 
-  // Categories for topic classification (8 grandes catégories IA Business)
+  // Categories for topic classification (8 catégories Finance x IA)
   categories: [
-    'Innovation & Produits',        // Lancements produits, nouveaux modèles IA, innovations
-    'Finance & Investissement',     // Levées de fonds, acquisitions, valorisations, IPOs
-    'Outils & Technologies',        // Plateformes SaaS, outils productivité, APIs, frameworks
-    'Marketing & Ventes',           // Marketing automation, CRM IA, customer engagement
-    'Analyse & Tendances',          // Études marché, rapports, prévisions, insights
-    'Régulation & Éthique',         // Lois IA, compliance, gouvernance, éthique
-    'Business & Stratégie',         // Stratégie entreprise, transformation, ROI, cas d\'usage
-    'Partenariats & Écosystème'     // Collaborations stratégiques, alliances, intégrations
+    'Trading & Investissement',     // Trading algorithmique, robo-advisors, gestion de portefeuille IA
+    'Banque & Paiements',           // Néobanques IA, paiements intelligents, crédit scoring IA
+    'Assurance & Risques',          // Assurtech, évaluation risques, tarification dynamique IA
+    'Détection Fraude & Sécurité',  // Anti-fraude IA, cybersécurité financière, AML/KYC
+    'Fintech & Innovation',         // Startups fintech IA, levées de fonds, nouveaux produits
+    'Régulation & Compliance',      // Régulations financières IA, RegTech, conformité
+    'Analyse & Prévisions',         // Analyse prédictive, market intelligence, forecasting IA
+    'Crypto & DeFi'                 // Finance décentralisée IA, blockchain + IA, crypto trading
   ],
 
   // Article structure
