@@ -58,13 +58,24 @@ ${topic.successStories?.map(s => `- ${s.entreprise}: ${s.resultats_apres}`).join
 OPPORTUNITÉS POUR LE LECTEUR:
 ${topic.opportunitesBusinessLecteurs?.actions_concretes?.join(', ') || 'Montrer comment en profiter'}
 
-OBJECTIF: Créer un article de 1200-1500 mots qui :
-- VULGARISE brillamment (comme Malcolm Gladwell)
+🎯 OBJECTIF CRITIQUE - LONGUEUR OBLIGATOIRE:
+
+MINIMUM ABSOLU: 1200 mots (compter les mots !)
+OBJECTIF IDÉAL: 1400-1500 mots
+MAXIMUM: 1800 mots
+
+⚠️ IMPORTANT: Si l'article fait moins de 1200 mots, il sera REJETÉ.
+Chaque section H2 doit contenir 200-300 mots minimum (4-6 paragraphes développés).
+
+L'article doit :
+- VULGARISER brillamment (comme Malcolm Gladwell)
 - ACCROCHE dès la première ligne
-- RACONTE une histoire captivante
-- VEND l'opportunité business
-- INSPIRE et donne envie d'agir
-- Montre la PROFONDEUR de recherche
+- RACONTER une histoire captivante avec DÉTAILS
+- DÉVELOPPER chaque point en profondeur
+- DONNER des EXEMPLES CONCRETS multiples
+- VENDRE l'opportunité business
+- INSPIRER et donner envie d'agir
+- Montrer la PROFONDEUR de recherche (multi-sources visibles)
 
 STRUCTURE STRICTE À SUIVRE:
 
@@ -150,12 +161,13 @@ INTRODUCTION (2 paragraphes):
 20. Paragraphe 1: Exposer le fait marquant, situation de départ, données factuelles ("selon", "aujourd'hui", "face à")
 21. Paragraphe 2: Transition vers développement, annoncer les enjeux ("Dans ce contexte", "C'est précisément ce que")
 
-DÉVELOPPEMENT (4-8 paragraphes - CŒUR DE L'ARTICLE):
-22. Paragraphes thématiques: Traiter chaque sous-aspect avec données + explication + cause/conséquence
+DÉVELOPPEMENT (6-10 paragraphes MINIMUM - CŒUR DE L'ARTICLE):
+22. Paragraphes thématiques: Traiter chaque sous-aspect avec données + explication + cause/conséquence + EXEMPLES
 23. Paragraphes de comparaison: Comparer avec autre période/pays ("en comparaison avec", "tandis que")
 24. Paragraphes de témoignage: Insérer citations dirigeants/experts ("Selon X", "comme le rappelle Y")
 25. Paragraphes de contraste: Montrer risques, contradictions ("Cependant", "mais", "pourtant")
-26. Chaque paragraphe = UNE idée centrale, autonome, 3-5 phrases minimum
+26. Paragraphes d'exemples concrets: Success stories détaillées, cas d'usage, transformations business
+27. Chaque paragraphe = UNE idée centrale, autonome, 4-6 phrases MINIMUM (pas de paragraphes courts !)
 
 ANALYSE (2-3 paragraphes):
 27. Paragraphe d'interprétation: Signification des faits ("Cela montre que", "Cette évolution suggère")
@@ -309,11 +321,11 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
     const issues = [];
     const wordCount = article.split(/\s+/).length;
 
-    // Check word count (1000-1500)
-    if (wordCount < 1000) {
-      issues.push(`Article too short (${wordCount} words, target 1000-1500)`);
-    } else if (wordCount > 1600) {
-      issues.push(`Article too long (${wordCount} words, target 1000-1500)`);
+    // Check word count (1200-1500 MINIMUM)
+    if (wordCount < 1200) {
+      issues.push(`Article too short (${wordCount} words, MINIMUM 1200 required)`);
+    } else if (wordCount > 1800) {
+      issues.push(`Article too long (${wordCount} words, maximum 1800)`);
     }
 
     // Check for H1
@@ -414,7 +426,7 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
       const prompt = this.buildWritingPrompt(topic);
       const result = await complete(prompt, {
         temperature: 0.7,
-        maxTokens: 4000, // Augmenté pour articles plus longs et détaillés
+        maxTokens: 6000, // Augmenté pour articles 1200-1500 mots minimum
       });
 
       logger.info('Article generated', {

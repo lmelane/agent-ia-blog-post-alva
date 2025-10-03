@@ -279,11 +279,19 @@ Effectue maintenant une recherche EXHAUSTIVE et compile un dossier éditorial UL
 
     } catch (error) {
       logger.error('Failed to enrich topic', error);
-      // Return original topic if enrichment fails
+      logger.warn('⚠️ Falling back to original topic data - article will be less rich');
+      
+      // Return original topic with basic enrichment
       return {
         ...topic,
         enriched: false,
         enrichmentError: error.message,
+        // Ajouter des champs par défaut pour éviter erreurs
+        analogiesMetaphores: [],
+        successStories: [],
+        opportunitesBusinessLecteurs: {
+          actions_concretes: ['Explorer cette technologie', 'Consulter des experts'],
+        },
       };
     }
   }
