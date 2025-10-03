@@ -1,5 +1,6 @@
 import ScoutAgent from './agents/scout.js';
 import RankerAgent from './agents/ranker.js';
+import ResearcherAgent from './agents/researcher.js';
 import WriterAgent from './agents/writer.js';
 import ThumbnailAgent from './agents/thumbnail.js';
 import PublisherAgent from './agents/publisher.js';
@@ -7,12 +8,13 @@ import logger from './utils/logger.js';
 
 /**
  * Full pipeline orchestrator
- * Workflow: Scout → Ranker → Writer → Thumbnail → Publisher
+ * Workflow: Scout → Ranker → Researcher → Writer → Thumbnail → Publisher
  */
 export class Pipeline {
   constructor() {
     this.scout = new ScoutAgent();
     this.ranker = new RankerAgent();
+    this.researcher = new ResearcherAgent();
     this.writer = new WriterAgent();
     this.thumbnail = new ThumbnailAgent();
     this.publisher = new PublisherAgent();
