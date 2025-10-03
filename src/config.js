@@ -58,8 +58,10 @@ export const config = {
 
   // Article structure (style Les Échos - articles riches)
   article: {
-    minWordCount: 1500,
-    targetWordCount: 2000,
+    minWordCount: 800,      // Minimum pour articles standards
+    targetWordCount: 1200,  // Objectif pour articles complets
+    maxWordCount: 1500,     // Maximum pour articles standards
+    dossierWordCount: 2000, // Pour dossiers approfondis
     includeFAQ: true,
     includeCTA: true,
   },

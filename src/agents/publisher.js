@@ -38,8 +38,19 @@ export class PublisherAgent {
    * Get category ID from category name
    */
   getCategoryId(categoryName) {
-    // Mapping des anciennes catégories vers les nouvelles
+    // Mapping Finance x IA → Catégories Webflow existantes
     const categoryMap = {
+      // Nouvelles catégories Finance x IA
+      'Trading & Investissement': 'Finance & Investissement',
+      'Banque & Paiements': 'Finance & Investissement',
+      'Assurance & Risques': 'Finance & Investissement',
+      'Détection Fraude & Sécurité': 'Outils & Technologies',
+      'Fintech & Innovation': 'Innovation & Produits',
+      'Régulation & Compliance': 'Régulation & Éthique',
+      'Analyse & Prévisions': 'Analyse & Tendances',
+      'Crypto & DeFi': 'Finance & Investissement',
+      
+      // Anciennes catégories (rétrocompatibilité)
       'Lancements Produits': 'Innovation & Produits',
       'Financements & Deals': 'Finance & Investissement',
       'Outils & Plateformes': 'Outils & Technologies',
@@ -48,16 +59,12 @@ export class PublisherAgent {
       'Régulations & Politique': 'Régulation & Éthique',
       'Cas d\'Usage': 'Business & Stratégie',
       'Partenariats': 'Partenariats & Écosystème',
-      // Mapping des catégories génériques
       'Technologie': 'Outils & Technologies',
       'Entreprise': 'Business & Stratégie',
       'Économie': 'Finance & Investissement',
-      'Santé': 'Business & Stratégie',
-      'Culture': 'Business & Stratégie',
-      'Carrière': 'Business & Stratégie',
     };
     
-    // Convertir l'ancienne catégorie en nouvelle si nécessaire
+    // Convertir la catégorie Finance x IA en catégorie Webflow
     const mappedCategory = categoryMap[categoryName] || categoryName;
     
     // Retourner l'ID Webflow

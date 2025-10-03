@@ -116,7 +116,11 @@ EXIGENCES CRITIQUES POUR UN ARTICLE PROFESSIONNEL:
 
 🎯 STRUCTURE & SEO:
 13. RÉDIGER ENTIÈREMENT EN FRANÇAIS
-14. MINIMUM 1500-2000 mots (article RICHE et DÉTAILLÉ comme Les Échos)
+14. LONGUEUR OBLIGATOIRE selon type:
+    - Articles standards (analyse, brèves approfondies): 800-1500 mots MINIMUM
+    - Dossiers/enquêtes approfondis: 1500-3000 mots
+    - OBJECTIF: Viser 1200-1500 mots pour un article complet et riche
+    - Chaque section H2 doit contenir 150-300 mots (3-5 paragraphes développés)
 15. Résumé de 8-10 lignes PERCUTANT avec chiffres-clés
 16. Sous-titres H3 optimisés SEO avec mots-clés secondaires
 17. FAQ avec questions SPÉCIFIQUES et détaillées (pas génériques)
