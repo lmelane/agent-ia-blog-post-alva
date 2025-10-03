@@ -30,7 +30,8 @@
     "dotenv": "^16.4.5",
     "gray-matter": "^4.0.3",
     "slugify": "^1.6.6",
-    "commander": "^12.0.0"
+    "commander": "^12.0.0",
+    "node-fetch": "^3.3.2"
   },
   "engines": {
     "node": ">=18.0.0"
