@@ -79,7 +79,7 @@ L'article doit :
 
 STRUCTURE STRICTE À SUIVRE:
 
-# [Titre accrocheur et SEO-optimisé]
+# [Titre accrocheur et SEO-optimisé - SEULEMENT première lettre en majuscule]
 
 **Catégorie:** ${topic.categorie}
 
@@ -89,19 +89,19 @@ STRUCTURE STRICTE À SUIVRE:
 ## Introduction
 [2-3 paragraphes qui introduisent le sujet, son contexte et pourquoi c'est important maintenant]
 
-## [Section H2 principale 1]
+## [Section H2 principale 1 - seulement première lettre en majuscule]
 [Contenu détaillé avec sous-sections H3 si nécessaire]
 
-### [Sous-section H3 si nécessaire]
+### [Sous-section H3 si nécessaire - seulement première lettre en majuscule]
 [Contenu]
 
-## [Section H2 principale 2]
+## [Section H2 principale 2 - seulement première lettre en majuscule]
 [Contenu détaillé]
 
-## [Section H2 principale 3]
+## [Section H2 principale 3 - seulement première lettre en majuscule]
 [Contenu détaillé]
 
-## [Section H2 principale 4 si nécessaire]
+## [Section H2 principale 4 si nécessaire - seulement première lettre en majuscule]
 [Contenu détaillé]
 
 ## FAQ
@@ -123,6 +123,12 @@ Réponse concise et précise.
 
 ## Sources
 [Les sources seront ajoutées automatiquement]
+
+⚠️ RÈGLE TYPOGRAPHIQUE FRANÇAISE IMPORTANTE:
+- Titres H1, H2, H3 : SEULEMENT la première lettre en majuscule
+- Exemple CORRECT: "Comment l'IA transforme le secteur bancaire"
+- Exemple INCORRECT: "Comment L'IA Transforme Le Secteur Bancaire"
+- Exception: noms propres, acronymes (IA, GPT, etc.)
 
 EXIGENCES CRITIQUES POUR UN ARTICLE PROFESSIONNEL:
 
