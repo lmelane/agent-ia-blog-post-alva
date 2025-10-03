@@ -1,3 +1,32 @@
+import fetch from 'node-fetch';
+import fs from 'fs/promises';
+import logger from '../utils/logger.js';
+import { saveArticle } from '../utils/database.js';
+
+/**
+ * Publisher Agent - Publishes articles to Webflow CMS
+ */
+export class PublisherAgent {
+  constructor() {
+    this.apiKey = process.env.WEBFLOW_API_KEY;
+    this.collectionId = process.env.WEBFLOW_COLLECTION_ID;
+    this.categoryCollectionId = '68df723aae69cd82d2618bbb'; // Collection Categories
+    this.siteId = '68de80f5980db27710f202f7'; // Site ID (alva)
+    this.apiUrl = 'https://api.webflow.com/v2';
+    
+    // Mapping des catégories (nom → ID Webflow)
+    this.categoryMapping = {
+      'Innovation & Produits': '68df72406f6e13be0b12cd0c',
+      'Finance & Investissement': '68dfa4a039b6559ddc60f6f5',
+      'Outils & Technologies': '68dfa4c3f7330aa38fc3cfd1',
+      'Marketing & Ventes': '68dfa4cca714486e92f625bf',
+      'Analyse & Tendances': '68dfa4d655f3d01e9f8b7f2e',
+      'Régulation & Éthique': '68dfa4df3da71d54578639ff',
+      'Business & Stratégie': '68dfa4e66f410867fa0289a9',
+      'Partenariats & Écosystème': '68dfa4ee2c3f724cfa8cc2b3',
+    };
+  }
+
   /**
    * Fetch categories from Webflow and build a name -> id map
    */
@@ -30,35 +59,6 @@
       logger.warn('Could not fetch Webflow categories', err);
       return {};
     }
-  }
-
-import fetch from 'node-fetch';
-import fs from 'fs/promises';
-import logger from '../utils/logger.js';
-import { saveArticle } from '../utils/database.js';
-
-/**
- * Publisher Agent - Publishes articles to Webflow CMS
- */
-export class PublisherAgent {
-  constructor() {
-    this.apiKey = process.env.WEBFLOW_API_KEY;
-    this.collectionId = process.env.WEBFLOW_COLLECTION_ID;
-    this.categoryCollectionId = '68df723aae69cd82d2618bbb'; // Collection Categories
-    this.siteId = '68de80f5980db27710f202f7'; // Site ID (alva)
-    this.apiUrl = 'https://api.webflow.com/v2';
-    
-    // Mapping des catégories (nom → ID Webflow)
-    this.categoryMapping = {
-      'Innovation & Produits': '68df72406f6e13be0b12cd0c',
-      'Finance & Investissement': '68dfa4a039b6559ddc60f6f5',
-      'Outils & Technologies': '68dfa4c3f7330aa38fc3cfd1',
-      'Marketing & Ventes': '68dfa4cca714486e92f625bf',
-      'Analyse & Tendances': '68dfa4d655f3d01e9f8b7f2e',
-      'Régulation & Éthique': '68dfa4df3da71d54578639ff',
-      'Business & Stratégie': '68dfa4e66f410867fa0289a9',
-      'Partenariats & Écosystème': '68dfa4ee2c3f724cfa8cc2b3',
-    };
   }
 
   /**
