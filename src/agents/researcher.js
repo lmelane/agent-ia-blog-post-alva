@@ -1,4 +1,4 @@
-import { deepResearch } from '../utils/openai-client.js';
+import { deepResearch, completeJSON } from '../utils/openai-client.js';
 import logger from '../utils/logger.js';
 
 /**
@@ -284,11 +284,41 @@ Effectue maintenant une recherche EXHAUSTIVE et compile un dossier éditorial UL
           const cleaned = sanitizeJsonLike(raw);
           dossier = JSON.parse(cleaned);
         } catch (e2) {
-          // Log un extrait pour debug (sans spammer)
-          const head = raw.slice(0, 200);
-          const tail = raw.slice(-200);
-          logger.warn('Deep Research JSON parse failed. Raw head/tail:', { head, tail });
-          throw new Error('Deep Research returned non-JSON content');
+          // Dernier recours: demander au modèle de normaliser en JSON strict
+          const repairPrompt = `Voici un contenu renvoyé par un outil de recherche qui DOIT être un JSON strict au format suivant (schéma simplifié):\n\n{
+  "dossierEditorial": {
+    "sujet": "string",
+    "angleEditorial": "string",
+    "questionsCentrales": ["string"],
+    "sourcesComplementaires": [{"titre":"string","url":"string","date":"string","typeSource":"string","extraits":"string"}],
+    "donneesChiffrees": {"montants": ["string"], "pourcentages": ["string"], "previsions": ["string"], "statistiques": ["string"]},
+    "citationsExperts": [{"auteur":"string","fonction":"string","entreprise":"string","citation":"string","source":"string"}],
+    "contexteHistorique": {"timeline": ["string"], "precedents": "string", "evolution": "string"},
+    "comparaisonsInternationales": {"usa":"string","europe":"string","asie":"string","differences":"string"},
+    "analyseConcurrentielle": {"concurrents": [{"nom":"string","partMarche":"string","positionnement":"string","forces":"string","faiblesses":"string"}], "dynamiqueMarche":"string"},
+    "enjeuxControverses": {"defis":["string"], "critiques":["string"], "risques":["string"], "debats":"string"},
+    "analogiesMetaphores": [{"concept":"string","analogie":"string","explication":"string"}],
+    "successStories": [{"entreprise":"string","secteur":"string","situation_avant":"string","solution_adoptee":"string","resultats_apres":"string","citation_dirigeant":"string"}],
+    "opportunitesBusinessLecteurs": {"pourquoi_agir_maintenant":"string","actions_concretes":["string"],"investissements_surveiller":["string"],"tendances_suivre":["string"],"premier_pas":"string"},
+    "perspectivesFutur": {"vision_enthousiasmante":"string","opportunites_emergentes":["string"],"conseil_final":"string"},
+    "syntheseRecherche": {"hook_principal":"string","message_cle":"string","appel_action":"string"}
+  }
+}\n\nTransforme STRICTEMENT le contenu suivant en JSON VALIDE qui respecte ce schéma. Ne renvoie QUE le JSON, sans texte additionnel.\n\n=== CONTENU A NORMALISER ===\n${raw}\n============================`;
+
+          const repaired = await completeJSON(repairPrompt, {
+            temperature: 0,
+            systemPrompt: 'You convert imperfect text into strict JSON matching the described schema. Return only JSON.',
+          });
+
+          if (!repaired?.data) {
+            // Log un extrait pour debug (sans spammer)
+            const head = raw.slice(0, 200);
+            const tail = raw.slice(-200);
+            logger.warn('Deep Research JSON parse failed. Raw head/tail:', { head, tail });
+            throw new Error('Deep Research returned non-JSON content');
+          }
+
+          dossier = repaired.data;
         }
       }
       
