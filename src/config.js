@@ -79,6 +79,17 @@ export const config = {
     maxSearchResults: 20,
     freshnessWindow: 48, // hours (48h = 2 jours)
   },
+
+  // Thumbnail generation profile (editorial/documentary tuning)
+  thumbnail: {
+    editorial_profile: {
+      film_stock: process.env.THUMB_FILM_STOCK || 'Portra 400',           // e.g., 'Portra 400' | 'Tri-X 400' | 'Kodak Gold'
+      time_of_day: process.env.THUMB_TIME_OF_DAY || 'daylight',          // e.g., 'morning light' | 'golden hour' | 'night indoor'
+      location_bias: process.env.THUMB_LOCATION || 'office',             // e.g., 'trading floor' | 'bank branch' | 'factory' | 'office'
+      faces: process.env.THUMB_FACES || 'allow',                         // 'allow' | 'avoid'
+      aspect_ratio: process.env.THUMB_ASPECT_RATIO || '16:9',            // aspect ratio hint
+    },
+  },
 };
 
 export default config;

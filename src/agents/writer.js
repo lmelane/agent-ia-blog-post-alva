@@ -11,6 +11,27 @@ export class WriterAgent {
   constructor() {}
 
   /**
+   * Smart truncate at sentence or word boundary with ellipsis
+   */
+  smartTruncate(text, limit) {
+    if (!text) return '';
+    if (text.length <= limit) return text;
+    const slice = text.slice(0, limit);
+    const sentenceEnd = Math.max(
+      slice.lastIndexOf('. '),
+      slice.lastIndexOf('! '),
+      slice.lastIndexOf('? '),
+      slice.lastIndexOf('… ')
+    );
+    if (sentenceEnd > 0 && sentenceEnd >= Math.floor(limit * 0.6)) {
+      return slice.slice(0, sentenceEnd + 1).trim();
+    }
+    const lastSpace = slice.lastIndexOf(' ');
+    if (lastSpace > 0) return slice.slice(0, lastSpace).trim() + '…';
+    return slice.trim() + '…';
+  }
+
+  /**
    * Build prompt for article writing with strict structure
    */
   buildWritingPrompt(topic) {
@@ -249,7 +270,9 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
   extractSummary(article) {
     const match = article.match(/##\s+Résumé\s*\n([\s\S]+?)(?=\n##)/i);
     if (match) {
-      return match[1].trim().substring(0, 500);
+      // Build a summary up to 3000 chars max, cutting cleanly
+      const text = match[1].trim();
+      return this.smartTruncate(text, 3000);
     }
     return '';
   }
@@ -274,15 +297,18 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
       strict: true,
     });
 
+    // Enforce excerpt <=3000 (including spaces) at construction time
+    const excerpt = summary || this.smartTruncate(topic.resume || '', 3000);
+
     return {
       title,
       slug,
       category: topic.categorie,
-      excerpt: summary || topic.resume?.substring(0, 155),
+      excerpt,
       reading_time: this.calculateReadingTime(article),
       seo: {
         title,
-        description: summary || topic.resume?.substring(0, 155),
+        description: (summary || topic.resume || '').substring(0, 155),
         keywords: topic.keywords || [],
       },
       sources: topic.sources?.map(s => ({

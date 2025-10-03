@@ -29,7 +29,14 @@ export class ThumbnailAgent {
     // Extract key concepts for REAL scenes
     const visualDirection = this.extractVisualConcepts(articleTitle, articleSummary);
 
-    const basePrompt = `Documentary editorial photograph, ultra realistic, 8K quality, natural lighting, realistic colors, 16:9.
+    const prof = config.thumbnail?.editorial_profile || {};
+    const filmStock = prof.film_stock || 'Portra 400';
+    const timeOfDay = prof.time_of_day || 'daylight';
+    const locationBias = prof.location_bias || 'office';
+    const facesPolicy = prof.faces || 'allow';
+    const aspect = prof.aspect_ratio || '16:9';
+
+    const basePrompt = `Documentary editorial photograph, ultra realistic, 8K quality, natural lighting (${timeOfDay}), realistic colors, ${aspect}.
 
 TITLE CONTEXT: ${articleTitle}
 
@@ -39,9 +46,11 @@ STYLE: authentic photojournalism, candid human expressions, raw realism, unscrip
 
 CREATIVE DIRECTION: capture a decisive moment in context; environmental storytelling; imperfect framing like real reportage; elements in motion; depth and emotion. Include subtle flaws (slight blur in background, film grain, real shadows).
 
-CAMERA: 35mm lens, f/2.8, ISO 400, shutter 1/250; handheld camera feeling; natural light (window, daylight, lamps). Color grading: subtle documentary tone, neutral contrast, soft film grain (Kodak Portra 400 look).
+CAMERA: 35mm lens, f/2.8, ISO 400, shutter 1/250; handheld camera feeling; natural light (window, daylight, lamps). Color grading: subtle documentary tone, neutral contrast, soft film grain (${filmStock} look).
 
-FRAMING: rule of thirds with natural variation; dynamic but not staged; focus on realism. FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid. One cohesive photograph.`;
+FRAMING: rule of thirds with natural variation; dynamic but not staged; focus on realism. FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid. One cohesive photograph.
+
+LOCATION BIAS: ${locationBias}. Faces: ${facesPolicy}.`;
 
     return basePrompt;
   }
@@ -118,7 +127,7 @@ FRAMING: rule of thirds with natural variation; dynamic but not staged; focus on
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       // First try with aspect_ratio; if 400 unrecognized param, fallback to minimal payload
       const payloads = [
-        { prompt: prompt, aspect_ratio: '16:9' },
+        { prompt: prompt, aspect_ratio: (config.thumbnail?.editorial_profile?.aspect_ratio || '16:9') },
         { prompt: prompt },
       ];
 

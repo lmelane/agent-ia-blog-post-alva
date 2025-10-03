@@ -244,6 +244,36 @@ export class PublisherAgent {
       // Add sources (HTML list) to article HTML content
       const articleWithSources = this.addSourcesToArticle(cleanedArticleHtml, frontMatter.sources);
       
+      // Enforce resume (excerpt) length <= 3000 characters with graceful truncation
+      const MAX_RESUME = 3000;
+      const rawExcerpt = frontMatter.excerpt || '';
+      const smartTruncate = (text, limit) => {
+        if (!text || text.length <= limit) return text || '';
+        const slice = text.slice(0, limit);
+        // Prefer end of sentence within the slice
+        const sentenceEnd = Math.max(
+          slice.lastIndexOf('. '),
+          slice.lastIndexOf('! '),
+          slice.lastIndexOf('? '),
+          slice.lastIndexOf('… '),
+        );
+        if (sentenceEnd > 0 && sentenceEnd >= Math.floor(limit * 0.6)) {
+          return slice.slice(0, sentenceEnd + 1).trim();
+        }
+        // Else cut at last whitespace
+        const lastSpace = slice.lastIndexOf(' ');
+        if (lastSpace > 0) {
+          return (slice.slice(0, lastSpace).trim() + '…');
+        }
+        // Fallback: hard cut with ellipsis
+        return (slice.trim() + '…');
+      };
+
+      const safeExcerpt = smartTruncate(rawExcerpt, MAX_RESUME);
+      if (safeExcerpt.length < rawExcerpt.length) {
+        logger.warn(`Resume exceeded ${MAX_RESUME} chars (was ${rawExcerpt.length}). Truncated gracefully to ${safeExcerpt.length}.`);
+      }
+
       // STEP 1: Save to database first to get public thumbnail URL
       logger.info('💾 Saving article to database...');
       
@@ -255,7 +285,7 @@ export class PublisherAgent {
         title: frontMatter.title,
         slug: frontMatter.slug,
         category: frontMatter.category,
-        excerpt: frontMatter.excerpt,
+        excerpt: safeExcerpt,
         content: articleWithSources,
         thumbnailData,
         thumbnailFilename: frontMatter.thumbnail?.filename,
@@ -286,7 +316,7 @@ export class PublisherAgent {
         
         // Champs de contenu
         article: articleWithSources,                          // article (RichText) - Contenu avec sources
-        resume: frontMatter.excerpt,                          // resume (PlainText) - Résumé
+        resume: safeExcerpt,                                  // resume (PlainText, <=3000 chars)
         
         // Catégorie (Reference vers collection Categories)
         direction: categoryId,                                // direction (Reference) - Lien vers catégorie
