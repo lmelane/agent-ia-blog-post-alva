@@ -94,12 +94,37 @@ EXIGENCES CRITIQUES POUR UN ARTICLE PROFESSIONNEL:
 
 🎯 STRUCTURE & SEO:
 13. RÉDIGER ENTIÈREMENT EN FRANÇAIS
-14. 1200-1500 mots (article substantiel)
-15. Résumé de 8 lignes PERCUTANT
+14. MINIMUM 1500-2000 mots (article RICHE et DÉTAILLÉ comme Les Échos)
+15. Résumé de 8-10 lignes PERCUTANT avec chiffres-clés
 16. Sous-titres H3 optimisés SEO avec mots-clés secondaires
 17. FAQ avec questions SPÉCIFIQUES et détaillées (pas génériques)
 18. Mots-clés naturels: ${topic.keywords?.join(', ') || 'IA, intelligence artificielle, business'}
 19. Citations sources avec [1], [2] dans le texte
+
+📰 STYLE LES ÉCHOS - STRUCTURE DÉTAILLÉE (8-14 paragraphes minimum):
+
+INTRODUCTION (2 paragraphes):
+20. Paragraphe 1: Exposer le fait marquant, situation de départ, données factuelles ("selon", "aujourd'hui", "face à")
+21. Paragraphe 2: Transition vers développement, annoncer les enjeux ("Dans ce contexte", "C'est précisément ce que")
+
+DÉVELOPPEMENT (4-8 paragraphes - CŒUR DE L'ARTICLE):
+22. Paragraphes thématiques: Traiter chaque sous-aspect avec données + explication + cause/conséquence
+23. Paragraphes de comparaison: Comparer avec autre période/pays ("en comparaison avec", "tandis que")
+24. Paragraphes de témoignage: Insérer citations dirigeants/experts ("Selon X", "comme le rappelle Y")
+25. Paragraphes de contraste: Montrer risques, contradictions ("Cependant", "mais", "pourtant")
+26. Chaque paragraphe = UNE idée centrale, autonome, 3-5 phrases minimum
+
+ANALYSE (2-3 paragraphes):
+27. Paragraphe d'interprétation: Signification des faits ("Cela montre que", "Cette évolution suggère")
+28. Paragraphe de scénarios: Hypothèses futures ("Si...alors", "à condition que", "dans l'hypothèse où")
+
+CONCLUSION (1 paragraphe):
+29. Synthèse + ouverture avec question ("En résumé", "L'enjeu sera de", "Reste à voir si")
+
+TRANSITIONS & FLUIDITÉ:
+30. Utiliser connecteurs logiques entre paragraphes (reprise mots-clés, transitions fluides)
+31. Varier longueur paragraphes (une phrase seule peut marquer une idée forte)
+32. Pyramide inversée: Commencer par le plus important, puis développer
 
 📊 ÉLÉMENTS VISUELS (à suggérer):
 20. Suggérer des encadrés "💡 Le saviez-vous ?" avec chiffres-clés

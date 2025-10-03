@@ -56,9 +56,10 @@ export const config = {
     'Crypto & DeFi'                 // Finance décentralisée IA, blockchain + IA, crypto trading
   ],
 
-  // Article structure
+  // Article structure (style Les Échos - articles riches)
   article: {
-    minWordCount: 1000,
+    minWordCount: 1500,
+    targetWordCount: 2000,
     includeFAQ: true,
     includeCTA: true,
   },
