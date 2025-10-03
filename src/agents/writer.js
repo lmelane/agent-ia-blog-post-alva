@@ -428,22 +428,42 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
       logger.info(`Writing article for: ${topic.titre}`);
       logger.info(`Category: ${topic.categorie} | Score: ${topic.scoring?.total || 'N/A'}`);
 
-      // Generate article
-      const prompt = this.buildWritingPrompt(topic);
-      const result = await complete(prompt, {
-        temperature: 0.7,
-        maxTokens: 6000, // Augmenté pour articles 1200-1500 mots minimum
-      });
+      // Generate article with up to 3 attempts if length < 1200
+      let articleContent = '';
+      let validation = { valid: false, issues: [], stats: { wordCount: 0 } };
+      const basePrompt = this.buildWritingPrompt(topic);
 
-      logger.info('Article generated', {
-        model: result.model,
-        tokensUsed: result.usage?.total_tokens,
-      });
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const prompt = attempt === 1
+          ? basePrompt
+          : `${basePrompt}\n\nIMPORTANT: Le brouillon précédent faisait ${validation.stats.wordCount} mots. Étends l'article à AU MOINS 1200 mots en développant:\n- L'analyse économique et les implications business (2 paragraphes)\n- Des exemples concrets et chiffrés (2 paragraphes)\n- Une success story détaillée (1-2 paragraphes)\n- La FAQ (ajoute 2 questions pertinentes avec réponses détaillées)\nGarde le ton pédagogique, accrocheur, sans répétitions, et respecte la typographie des titres.`;
 
-      const articleContent = result.content;
+        const result = await complete(prompt, {
+          temperature: 0.7,
+          maxTokens: 6000, // Articles 1200-1500 mots minimum
+        });
 
-      // Validate article
-      const validation = this.validateArticle(articleContent);
+        logger.info('Article generated', {
+          model: result.model,
+          tokensUsed: result.usage?.total_tokens,
+          attempt,
+        });
+
+        articleContent = result.content;
+        validation = this.validateArticle(articleContent);
+        // Renseigner le wordCount pour la prochaine itération du message
+        validation.stats = validation.stats || {};
+        validation.stats.wordCount = articleContent.split(/\s+/).length;
+
+        if (!validation.issues.find(i => i.includes('too short'))) {
+          break;
+        }
+
+        logger.warn(`Article under 1200 words (attempt ${attempt}). Retrying with expansion...`);
+      }
+
+      // Validate article (final)
+      // Note: validation already computed, keep it for logging and decision
       
       if (!validation.valid) {
         logger.warn('Article validation issues:', validation.issues);

@@ -384,7 +384,20 @@ export class PublisherAgent {
     try {
       logger.info('📤 Publishing Webflow site...');
       
-      // Publish without specifying domains (publishes to all)
+      // Get custom domains and publish specifically to these domain IDs
+      const customDomains = await this.getSiteDomains();
+      const domainIds = (customDomains || [])
+        .map(d => d.id || d._id || d.domainId || d.domain_id)
+        .filter(Boolean);
+
+      if (!domainIds.length) {
+        logger.warn('No domain IDs found from Webflow. Attempting to publish to all by sending empty body...');
+      } else {
+        logger.info(`Found ${domainIds.length} domain(s). Publishing to: ${domainIds.join(', ')}`);
+      }
+
+      const body = domainIds.length ? { domains: domainIds } : {};
+
       const response = await fetch(
         `${this.apiUrl}/sites/${this.siteId}/publish`,
         {
@@ -394,7 +407,7 @@ export class PublisherAgent {
             'Content-Type': 'application/json',
             'accept': 'application/json',
           },
-          body: JSON.stringify({}),
+          body: JSON.stringify(body),
         }
       );
 
