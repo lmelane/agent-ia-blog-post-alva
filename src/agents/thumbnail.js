@@ -23,27 +23,27 @@ export class ThumbnailAgent {
   }
 
   /**
-   * Build thumbnail prompt from article summary (ultra-realistic, highly varied style)
+   * Build thumbnail prompt from article summary (real-life editorial/documentary style)
    */
   buildThumbnailPrompt(articleSummary, articleTitle) {
-    // Extract key concepts to create varied visuals
+    // Extract key concepts for REAL scenes
     const visualDirection = this.extractVisualConcepts(articleTitle, articleSummary);
-    
-    const basePrompt = `Professional photograph, 8K quality, cinematic lighting, 16:9 format.
 
+    const basePrompt = `Documentary editorial photograph, 8K quality, natural lighting, realistic colors, 16:9.
+
+TITLE CONTEXT: ${articleTitle}
+
+SUBJECT & SCENE (real life):
 ${visualDirection}
 
-STRICT RULES:
-- NO computers, NO laptops, NO monitors, NO screens
-- NO people at desks, NO office scenes
-- NO generic tech stock photos
-- Focus on abstract concepts, metaphors, or specific objects
-- Creative, unique, artistic interpretation
+STYLE: photojournalism, cinematic yet authentic, candid human expressions, shallow depth of field, soft bokeh, tactile textures, real environment (no CGI look).
 
-STYLE: Magazine-quality, sharp focus, professional color grading, modern aesthetic.
+CREATIVE DIRECTION: capture a decisive moment; dynamic composition with foreground interest; environmental storytelling; use reflections/glass, hands in action, notes and documents.
 
-Create something visually striking and different.`;
-    
+CAMERA: 35mm lens look, f/2.8, ISO 400, shutter 1/250; natural window light; subtle color grading.
+
+FRAMING: rule of thirds, leading lines; FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid; one cohesive photograph.`;
+
     return basePrompt;
   }
 
@@ -54,41 +54,41 @@ Create something visually striking and different.`;
     const lowerTitle = title.toLowerCase();
     const lowerSummary = summary.toLowerCase();
     
-    // Detect specific themes and suggest CREATIVE visuals (NO screens/computers)
+    // Suggest REAL-LIFE visuals with people and environments
     if (lowerTitle.includes('financement') || lowerTitle.includes('levée') || lowerTitle.includes('investissement') || lowerTitle.includes('funding')) {
-      return 'VISUAL: Golden coins stacked in growth pattern, money tree with glowing leaves, upward arrow made of currency, venture capital rocket launch, investment growth represented by ascending stairs of gold bars. Creative financial metaphor.';
+      return 'VISUAL: Venture capital team in modern office discussing a term sheet on a table with printed documents and highlighters; close-up of hands signing an investment agreement; CFO presenting funding figures on a glass wall; founders shaking hands in a real meeting room.';
     }
     
     if (lowerTitle.includes('partenariat') || lowerTitle.includes('collaboration') || lowerTitle.includes('partner')) {
-      return 'VISUAL: Two puzzle pieces connecting with light between them, interlocking metal gears in motion, handshake sculpture, bridge connecting two islands, merging rivers, collaborative art installation. Partnership metaphor.';
+      return 'VISUAL: Two executives shaking hands in a conference room, authentic business attire; joint workshop with teams around a whiteboard; people signing a partnership document; mixed team collaboration scene with post-its and laptops.';
     }
     
     if (lowerTitle.includes('régulation') || lowerTitle.includes('loi') || lowerTitle.includes('politique') || lowerTitle.includes('regulation')) {
-      return 'VISUAL: Balance scales with glowing orbs, gavel on marble surface, legal books with golden edges, justice statue, regulatory framework represented by architectural structure, compliance shield. Legal/regulation concept.';
+      return 'VISUAL: Regulator or compliance officer reviewing documents in an office; close-up of a gavel on a real desk with legal files; corporate compliance team meeting; courthouse hallway with people in motion.';
     }
     
     if (lowerTitle.includes('api') || lowerTitle.includes('plateforme') || lowerTitle.includes('outil') || lowerTitle.includes('platform')) {
-      return 'VISUAL: Interconnected nodes with light pathways, circuit board macro shot, fiber optic cables with light flowing, modular building blocks, API gateway represented by futuristic door/portal, data streams. Tech infrastructure.';
+      return 'VISUAL: Engineer presenting an API dashboard on a laptop in a meeting; developer pair-programming in a modern workspace; product manager pointing at an architecture diagram on a whiteboard; server room corridor with real hardware and a technician walking by.';
     }
     
     if (lowerTitle.includes('gpt') || lowerTitle.includes('llm') || lowerTitle.includes('modèle') || lowerTitle.includes('model') || lowerTitle.includes('openai')) {
-      return 'VISUAL: Glowing neural pathways in 3D space, brain made of light particles, language represented by floating letters/symbols, transformer architecture as geometric structure, AI consciousness as abstract light formation. NO screens.';
+      return 'VISUAL: Data scientist explaining model outputs to a colleague on paper printouts; UX researcher observing a user interacting with an AI assistant on a smartphone; team reviewing prompt examples around a real table; call center agent using an AI tool with headset.';
     }
     
     if (lowerTitle.includes('automatisation') || lowerTitle.includes('automation')) {
-      return 'VISUAL: Precision robotic arm in action, automated conveyor belt with products, mechanical gears in perfect sync, industrial automation machinery, 3D printer creating object, assembly line close-up. Industrial automation.';
+      return 'VISUAL: Operator supervising an automated conveyor belt in a real factory; close-up of worker hands controlling a robotic arm panel; warehouse associate scanning packages with handheld device; manufacturing line with staff in PPE.';
     }
     
     if (lowerTitle.includes('trading') || lowerTitle.includes('bourse') || lowerTitle.includes('stock')) {
-      return 'VISUAL: Bull and bear sculptures, trading floor bell, stock ticker tape, candlestick charts as 3D sculptures, market volatility as wave patterns, financial instruments. Trading concept.';
+      return 'VISUAL: Traders in a real trading floor monitoring multiple screens; close-up of a hand placing an order on a mechanical keyboard; portfolio manager discussing charts with a colleague; finance team debrief around a real-world dashboard printout.';
     }
     
     if (lowerTitle.includes('crypto') || lowerTitle.includes('blockchain') || lowerTitle.includes('bitcoin')) {
-      return 'VISUAL: Physical Bitcoin coin with dramatic lighting, blockchain represented by chain links, cryptocurrency mining rig close-up, digital wallet as futuristic safe, crypto nodes network. Crypto/blockchain.';
+      return 'VISUAL: Person scanning a QR code to pay with crypto at a café; hardware wallet on a real desk next to a laptop; meetup group discussing blockchain in a co-working space; crypto ATM with a user interacting.';
     }
     
-    // Default: VERY creative
-    return 'VISUAL: Abstract representation using light, geometry, nature metaphors, or artistic installation. Think outside the box. Create something memorable and unique that represents innovation and technology WITHOUT showing computers or screens.';
+    // Default: REAL-LIFE business context
+    return 'VISUAL: Professionals in a real office or retail environment interacting with financial technology; candid human expressions; authentic workspace details (documents, pens, coffee mugs), natural light, no CGI.';
   }
 
   /**

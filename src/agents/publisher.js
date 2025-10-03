@@ -165,8 +165,8 @@ export class PublisherAgent {
     // Remove title H1
     cleaned = cleaned.replace(/^#\s+.+\n\n/m, '');
     
-    // Remove category line
-    cleaned = cleaned.replace(/^\*\*Catégorie:\*\*\s+.+\n\n/m, '');
+    // Remove category line (robust to extra spaces and single/double newline)
+    cleaned = cleaned.replace(/^\s*\*\*Catégorie:\*\*.*\n?/mi, '');
     
     // Remove placeholder "## Sources" section (will be added properly later)
     cleaned = cleaned.replace(/##\s+Sources\s*\n+Les sources seront ajoutées automatiquement\./gm, '');
