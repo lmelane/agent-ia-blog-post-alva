@@ -318,7 +318,7 @@ export class PublisherAgent {
   async getSiteDomains() {
     try {
       const response = await fetch(
-        `${this.apiUrl}/sites/${this.siteId}/domains`,
+        `${this.apiUrl}/sites/${this.siteId}/custom_domains`,
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
@@ -328,11 +328,12 @@ export class PublisherAgent {
       );
 
       if (!response.ok) {
+        logger.warn(`Could not get domains: ${response.status}`);
         return [];
       }
 
       const data = await response.json();
-      return data.domains || [];
+      return data.customDomains || [];
     } catch (error) {
       logger.warn('Could not get site domains', error);
       return [];
@@ -346,17 +347,7 @@ export class PublisherAgent {
     try {
       logger.info('📤 Publishing Webflow site...');
       
-      // Get domains
-      const domains = await this.getSiteDomains();
-      
-      if (domains.length === 0) {
-        logger.warn('No domains found, skipping site publish');
-        return false;
-      }
-
-      // Publish to all domains
-      const domainIds = domains.map(d => d.id);
-      
+      // Publish without specifying domains (publishes to all)
       const response = await fetch(
         `${this.apiUrl}/sites/${this.siteId}/publish`,
         {
@@ -366,9 +357,7 @@ export class PublisherAgent {
             'Content-Type': 'application/json',
             'accept': 'application/json',
           },
-          body: JSON.stringify({
-            domains: domainIds,
-          }),
+          body: JSON.stringify({}),
         }
       );
 
