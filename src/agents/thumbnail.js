@@ -22,24 +22,42 @@ export class ThumbnailAgent {
   }
 
   /**
-   * Build thumbnail prompt from article summary (realistic photo style)
+   * Build thumbnail prompt from article summary (ultra-realistic professional style)
    */
   buildThumbnailPrompt(articleSummary, articleTitle) {
-    const basePrompt = `Professional, high-quality, realistic photograph for a blog article thumbnail about: ${articleSummary}. 
-    
-The image should be:
-- A real-life, photorealistic scene directly related to the article topic
-- Professional photography quality with good lighting and composition
-- Visually engaging and immediately understandable
-- Modern and clean aesthetic
-- Suitable for a tech/business blog
-- No text, no watermark
-- 16:9 aspect ratio
-- High resolution
+    const basePrompt = `Ultra-realistic, professional photograph for a premium tech blog article.
 
-Context: ${articleTitle}
+SUBJECT: ${articleTitle}
 
-Create a compelling, realistic image that captures the essence of this topic.`;
+CONTEXT: ${articleSummary}
+
+VISUAL REQUIREMENTS:
+- Photorealistic, high-end commercial photography quality
+- Sharp focus, professional lighting (soft natural light or studio lighting)
+- Modern, clean, minimalist composition with breathing space
+- Corporate/business aesthetic suitable for Fortune 500 companies
+- Cinematic color grading with balanced, professional tones
+- Depth of field with bokeh effect for visual interest
+- 16:9 aspect ratio, horizontal orientation
+
+CONTENT STYLE:
+- Real-world scene that metaphorically represents the AI/tech concept
+- Modern office environment, technology workspace, or abstract tech visualization
+- Professional business setting with high-end equipment
+- Clean, uncluttered background (white, soft grey, or blurred environment)
+- Contemporary, sophisticated, premium feel
+
+TECHNICAL SPECS:
+- 8K resolution quality
+- Professional DSLR camera aesthetic (Canon EOS R5, Sony A7R IV style)
+- Perfect exposure and white balance
+- No text, no logos, no watermarks, no UI elements
+- No people's faces (to avoid uncanny valley)
+- Focus on objects, environments, abstract concepts, or hands interacting with technology
+
+MOOD: Professional, innovative, trustworthy, modern, aspirational
+
+Create a stunning, magazine-quality photograph that instantly communicates the article's theme.`;
     
     return basePrompt;
   }
