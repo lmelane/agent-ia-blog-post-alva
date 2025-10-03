@@ -29,20 +29,19 @@ export class ThumbnailAgent {
     // Extract key concepts for REAL scenes
     const visualDirection = this.extractVisualConcepts(articleTitle, articleSummary);
 
-    const basePrompt = `Documentary editorial photograph, 8K quality, natural lighting, realistic colors, 16:9.
+    const basePrompt = `Documentary editorial photograph, ultra realistic, 8K quality, natural lighting, realistic colors, 16:9.
 
 TITLE CONTEXT: ${articleTitle}
 
-SUBJECT & SCENE (real life):
-${visualDirection}
+SUBJECT & SCENE: ${visualDirection}
 
-STYLE: photojournalism, cinematic yet authentic, candid human expressions, shallow depth of field, soft bokeh, tactile textures, real environment (no CGI look).
+STYLE: authentic photojournalism, candid human expressions, raw realism, unscripted moment, tactile textures, natural imperfections. Avoid CGI, illustration, or cinematic over-stylization.
 
-CREATIVE DIRECTION: capture a decisive moment; dynamic composition with foreground interest; environmental storytelling; use reflections/glass, hands in action, notes and documents.
+CREATIVE DIRECTION: capture a decisive moment in context; environmental storytelling; imperfect framing like real reportage; elements in motion; depth and emotion. Include subtle flaws (slight blur in background, film grain, real shadows).
 
-CAMERA: 35mm lens look, f/2.8, ISO 400, shutter 1/250; natural window light; subtle color grading.
+CAMERA: 35mm lens, f/2.8, ISO 400, shutter 1/250; handheld camera feeling; natural light (window, daylight, lamps). Color grading: subtle documentary tone, neutral contrast, soft film grain (Kodak Portra 400 look).
 
-FRAMING: rule of thirds, leading lines; FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid; one cohesive photograph.`;
+FRAMING: rule of thirds with natural variation; dynamic but not staged; focus on realism. FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid. One cohesive photograph.`;
 
     return basePrompt;
   }
@@ -85,6 +84,16 @@ FRAMING: rule of thirds, leading lines; FULL SINGLE FRAME ONLY — no collage, n
     
     if (lowerTitle.includes('crypto') || lowerTitle.includes('blockchain') || lowerTitle.includes('bitcoin')) {
       return 'VISUAL: Person scanning a QR code to pay with crypto at a café; hardware wallet on a real desk next to a laptop; meetup group discussing blockchain in a co-working space; crypto ATM with a user interacting.';
+    }
+
+    // Fraud / Security / Compliance (KYC/AML)
+    if (
+      lowerTitle.includes('fraude') || lowerTitle.includes('sécurité') || lowerTitle.includes('securite') ||
+      lowerTitle.includes('aml') || lowerTitle.includes('kyc') || lowerTitle.includes('compliance') ||
+      lowerSummary.includes('fraude') || lowerSummary.includes('sécurité') || lowerSummary.includes('securite') ||
+      lowerSummary.includes('aml') || lowerSummary.includes('kyc') || lowerSummary.includes('conformité') || lowerSummary.includes('compliance')
+    ) {
+      return 'VISUAL: Compliance analyst reviewing suspicious transactions on printed reports with a highlighter; bank agent verifying a customer ID and documents at a service desk; team discussion around a risk heatmap on a whiteboard; close-up of hands comparing ID card and paperwork with a security watermark visible.';
     }
     
     // Default: REAL-LIFE business context
