@@ -178,22 +178,23 @@ export class PublisherAgent {
   }
 
   /**
-   * Add sources to article content
+   * Add sources to article content (HTML)
+   * The input article string is already HTML (see cleanArticleForWebflow)
    */
-  addSourcesToArticle(article, sources) {
-    if (!sources || sources.length === 0) return article;
-    
-    // Add sources section at the end
-    let articleWithSources = article + '\n\n## Sources\n\n';
-    sources.forEach((source, i) => {
-      articleWithSources += `${i + 1}. [${source.titre}](${source.url})`;
-      if (source.date_fr) {
-        articleWithSources += ` (${source.date_fr})`;
-      }
-      articleWithSources += '\n';
+  addSourcesToArticle(articleHtml, sources) {
+    if (!sources || sources.length === 0) return articleHtml;
+
+    let html = articleHtml;
+    html += '\n\n<h2>Sources</h2>\n<ol>';
+    sources.forEach((source) => {
+      const title = source.titre || source.title || 'Source';
+      const url = source.url || '#';
+      const date = source.date_fr ? ` (${source.date_fr})` : '';
+      html += `\n  <li><a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>${date}</li>`;
     });
-    
-    return articleWithSources;
+    html += '\n</ol>';
+
+    return html;
   }
 
   /**
@@ -203,11 +204,11 @@ export class PublisherAgent {
     logger.info('📤 Publishing to Webflow CMS...');
 
     try {
-      // Clean article for Webflow (remove front-matter, title, category)
-      const cleanedArticle = this.cleanArticleForWebflow(article);
+      // Clean article for Webflow (remove front-matter, title, category) and convert to HTML
+      const cleanedArticleHtml = this.cleanArticleForWebflow(article);
       
-      // Add sources to article content
-      const articleWithSources = this.addSourcesToArticle(cleanedArticle, frontMatter.sources);
+      // Add sources (HTML list) to article HTML content
+      const articleWithSources = this.addSourcesToArticle(cleanedArticleHtml, frontMatter.sources);
       
       // STEP 1: Save to database first to get public thumbnail URL
       logger.info('💾 Saving article to database...');

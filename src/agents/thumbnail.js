@@ -12,6 +12,7 @@ export class ThumbnailAgent {
     this.apiKey = process.env.REVE_API_KEY;
     this.apiUrl = 'https://api.reve.com/v1/image/create';
     this.outputDir = path.join(process.cwd(), 'articles', 'thumbnails');
+    this.modelId = process.env.REVE_MODEL_ID || null; // optional override
   }
 
   /**
@@ -101,68 +102,82 @@ Create something visually striking and different.`;
 
     logger.info('🎨 Generating thumbnail image with Reve.com...');
 
-    try {
-      const prompt = this.buildThumbnailPrompt(articleSummary, articleTitle);
-      
-      logger.info('Thumbnail prompt:', { prompt: prompt.substring(0, 150) + '...' });
+    const prompt = this.buildThumbnailPrompt(articleSummary, articleTitle);
+    logger.info('Thumbnail prompt:', { prompt: prompt.substring(0, 150) + '...' });
 
-      // Call Reve.com API (selon la documentation)
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          prompt: prompt,
-          aspect_ratio: '16:9',
-          version: 'latest',
-        }),
-      });
+    // Build a list of model attempts: env override first, then safer, then generic
+    const modelAttempts = [];
+    if (this.modelId) modelAttempts.push(this.modelId);
+    modelAttempts.push('thorn_safer_v1', 'thorn_v1');
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Reve API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      
-      logger.info('Reve API response:', {
-        request_id: data.request_id,
-        credits_used: data.credits_used,
-        credits_remaining: data.credits_remaining,
-      });
-
-      // Vérifier la violation de contenu
-      if (data.content_violation) {
-        throw new Error('Content policy violation detected by Reve.com');
-      }
-
-      // L'image est en base64 dans data.image
-      if (!data.image) {
-        throw new Error('No image data in Reve API response');
-      }
-
-      logger.success('Thumbnail generated successfully');
-      logger.info(`Credits used: ${data.credits_used}, remaining: ${data.credits_remaining}`);
-
-      // Sauvegarder l'image base64
-      const filename = await this.saveBase64Image(data.image, articleSlug);
-
-      return {
-        filename: filename,
-        localPath: path.join(this.outputDir, filename),
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const model = modelAttempts[attempt - 1] || null;
+      const payload = {
         prompt: prompt,
-        generatedAt: new Date().toISOString(),
-        provider: 'reve.com',
-        request_id: data.request_id,
-        credits_used: data.credits_used,
-        credits_remaining: data.credits_remaining,
+        aspect_ratio: '16:9',
       };
-    } catch (error) {
-      logger.error('Failed to generate thumbnail', error);
-      return null;
+      if (model) payload.model_id = model;
+
+      try {
+        const response = await fetch(this.apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Reve API error: ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+
+        logger.info('Reve API response:', {
+          request_id: data.request_id,
+          credits_used: data.credits_used,
+          credits_remaining: data.credits_remaining,
+          model_attempted: model || 'default',
+        });
+
+        if (data.content_violation) {
+          throw new Error('Content policy violation detected by Reve.com');
+        }
+
+        if (!data.image) {
+          throw new Error('No image data in Reve API response');
+        }
+
+        logger.success('Thumbnail generated successfully');
+        logger.info(`Credits used: ${data.credits_used}, remaining: ${data.credits_remaining}`);
+
+        const filename = await this.saveBase64Image(data.image, articleSlug);
+
+        return {
+          filename: filename,
+          localPath: path.join(this.outputDir, filename),
+          prompt: prompt,
+          generatedAt: new Date().toISOString(),
+          provider: 'reve.com',
+          request_id: data.request_id,
+          credits_used: data.credits_used,
+          credits_remaining: data.credits_remaining,
+          model_used: model || 'default',
+        };
+      } catch (error) {
+        logger.warn(`Reve generation attempt ${attempt}/${maxAttempts} failed${model ? ` (model: ${model})` : ''}: ${error.message}`);
+        if (attempt < maxAttempts) {
+          const delayMs = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
+          await new Promise(res => setTimeout(res, delayMs));
+          continue;
+        }
+        logger.error('Failed to generate thumbnail after retries', error);
+        return null;
+      }
     }
   }
 
