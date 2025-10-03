@@ -81,8 +81,8 @@ export async function saveArticle(articleData) {
 
     const articleId = result.rows[0].id;
     
-    // Generate public thumbnail URL
-    const thumbnailUrl = `${process.env.PUBLIC_URL || 'https://web-production-da83a.up.railway.app'}/api/thumbnail/${slug}`;
+    // Generate public thumbnail URL (direct link with .png extension)
+    const thumbnailUrl = `${process.env.PUBLIC_URL || 'https://web-production-da83a.up.railway.app'}/images/${slug}.png`;
     
     // Update with thumbnail URL
     await pool.query(

@@ -5,8 +5,8 @@ import logger from '../utils/logger.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Endpoint pour servir les thumbnails
-app.get('/api/thumbnail/:slug', async (req, res) => {
+// Endpoint pour servir les thumbnails avec extension .png
+app.get('/images/:slug.png', async (req, res) => {
   try {
     const { slug } = req.params;
     const thumbnail = await getThumbnailBySlug(slug);
@@ -17,11 +17,17 @@ app.get('/api/thumbnail/:slug', async (req, res) => {
     
     res.set('Content-Type', 'image/png');
     res.set('Cache-Control', 'public, max-age=31536000');
+    res.set('Content-Disposition', `inline; filename="${slug}.png"`);
     res.send(thumbnail.data);
   } catch (error) {
     logger.error('Error serving thumbnail', error);
     res.status(500).send('Internal server error');
   }
+});
+
+// Legacy endpoint (redirect to new format)
+app.get('/api/thumbnail/:slug', (req, res) => {
+  res.redirect(301, `/images/${req.params.slug}.png`);
 });
 
 app.get('/health', (req, res) => {
