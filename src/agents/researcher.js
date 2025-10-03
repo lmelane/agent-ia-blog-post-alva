@@ -256,14 +256,38 @@ Effectue maintenant une recherche EXHAUSTIVE et compile un dossier éditorial UL
 
       // Tentative de parsing JSON robuste
       let dossier;
+      const raw = (result.content || '').trim();
+
+      // Util: nettoyage de contenu JSON approximatif
+      const sanitizeJsonLike = (text) => {
+        let s = text.trim();
+        // Retirer fences ```json ... ```
+        s = s.replace(/```json\n([\s\S]*?)\n```/gi, '$1');
+        s = s.replace(/```\n([\s\S]*?)\n```/g, '$1');
+        // Extraire du premier '{' au dernier '}'
+        const first = s.indexOf('{');
+        const last = s.lastIndexOf('}');
+        if (first !== -1 && last !== -1 && last > first) {
+          s = s.substring(first, last + 1);
+        }
+        // Normaliser guillemets “ ” ‘ ’ en " et '
+        s = s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+        // Supprimer virgules traînantes avant } ou ]
+        s = s.replace(/,\s*([}\]])/g, '$1');
+        return s.trim();
+      };
+
       try {
-        dossier = JSON.parse(result.content);
-      } catch (e) {
-        // Fallback: essayer d'extraire le bloc JSON si le modèle a ajouté du texte
-        const match = result.content.match(/\{[\s\S]*\}$/);
-        if (match) {
-          dossier = JSON.parse(match[0]);
-        } else {
+        dossier = JSON.parse(raw);
+      } catch {
+        try {
+          const cleaned = sanitizeJsonLike(raw);
+          dossier = JSON.parse(cleaned);
+        } catch (e2) {
+          // Log un extrait pour debug (sans spammer)
+          const head = raw.slice(0, 200);
+          const tail = raw.slice(-200);
+          logger.warn('Deep Research JSON parse failed. Raw head/tail:', { head, tail });
           throw new Error('Deep Research returned non-JSON content');
         }
       }

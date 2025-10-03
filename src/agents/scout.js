@@ -203,8 +203,8 @@ EXIGENCES CRITIQUES:
         logger.warn(`Invalid category "${topic.categorie}" for topic "${topic.titre}"`, {
           validCategories: this.categories,
         });
-        // Try to assign a default category
-        topic.categorie = 'Technologie';
+        // Map invalid to a valid Finance x IA category fallback
+        topic.categorie = 'Fintech & Innovation';
       }
 
       // Validate freshness
@@ -237,7 +237,7 @@ EXIGENCES CRITIQUES:
 
     try {
       const prompt = this.buildResearchPrompt();
-      logger.info('Calling Deep Research API with JSON mode...');
+      logger.info('Calling Deep Research API...');
 
       // Use completeJSON for structured output
       const result = await completeJSON(prompt, {
