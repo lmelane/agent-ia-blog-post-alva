@@ -148,15 +148,32 @@ TRANSITIONS & FLUIDITÉ:
 31. Varier longueur paragraphes (une phrase seule peut marquer une idée forte)
 32. Pyramide inversée: Commencer par le plus important, puis développer
 
-📊 ÉLÉMENTS VISUELS (à suggérer):
-20. Suggérer des encadrés "💡 Le saviez-vous ?" avec chiffres-clés
-21. Proposer des comparaisons "Avant/Après" ou "Traditionnel vs IA"
-22. Timeline si pertinent
+📰 TON & STYLE LES ÉCHOS (CRITIQUE):
+33. SOBRE & FACTUEL: Pas d'emphase excessive, pas de superlatifs ("révolution", "absolument"), ton neutre
+34. VOIX ACTIVE: Privilégier phrases actives, présent/passé récent pour faits actuels
+35. CONDITIONNEL PRUDENT: Pour projections ("pourrait", "faudrait que", "dans l'hypothèse où")
+36. CONNECTEURS ADVERSATIFS: "Cependant", "Toutefois", "Or", "Pourtant" pour nuancer
+37. VOCABULAIRE PRÉCIS: Termes techniques expliqués, jargon économique maîtrisé
+38. PAS DE TON PERSONNEL: Éviter "nous", "on", rester objectif et distant
+39. PHRASES COURTES: 3-5 phrases par paragraphe, syntaxe claire et directe
 
-🚀 ENGAGEMENT:
-23. CTA ACTIONNABLE: Pas juste "abonnez-vous" mais proposition de valeur concrète
-24. CONCLUSION PROSPECTIVE: "Et demain ?" - vision 5-10 ans, impacts futurs
-25. OUVERTURE: Mentionner acteurs concurrents, tendances du secteur
+📊 DONNÉES & CRÉDIBILITÉ:
+40. CHIFFRES SYSTÉMATIQUES: Chaque affirmation appuyée par données vérifiables
+41. ATTRIBUTION SOURCES: "Selon [source]", "d'après [étude]", "[expert] affirme que"
+42. COMPARAISONS TEMPORELLES: "+X% par rapport à l'an dernier", évolutions sur période
+43. EXEMPLES CONCRETS: Entreprises nommées, cas d'usage précis, secteurs identifiés
+44. CITATIONS INTÉGRÉES: Guillemets typographiques, nom + fonction de la personne citée
+
+🎯 ANALYSE & RECUL:
+45. DIMENSION EXPLICATIVE: Pas juste "ce qui s'est passé" mais "ce que cela signifie"
+46. MISE EN PERSPECTIVE: Historique, internationale, sectorielle
+47. CAUSES & FACTEURS: Expliquer les dynamiques sous-jacentes
+48. PRUDENCE ANALYTIQUE: "Cela témoigne de", "Cette évolution s'inscrit dans", "On peut y voir"
+
+🔚 CONCLUSION OUVERTE:
+49. SYNTHÈSE BRÈVE: Rappel enjeu central en 2-3 phrases
+50. OUVERTURE PROSPECTIVE: Question ou défi à venir ("Reste à voir si", "Le défi sera de")
+51. PAS DE CONCLUSION FERMÉE: L'actualité continue, histoire en cours
 
 ⚠️ IMPORTANT:
 - Ne PAS inclure de YAML front-matter
