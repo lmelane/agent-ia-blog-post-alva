@@ -92,6 +92,9 @@ export class PublisherAgent {
   markdownToHTML(markdown) {
     let html = markdown;
     
+    // Links FIRST (before other conversions to avoid conflicts)
+    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+    
     // Headers
     html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
     html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
@@ -99,23 +102,47 @@ export class PublisherAgent {
     // Bold
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     
-    // Italic
+    // Italic  
     html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
     
-    // Links
-    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+    // Lists (numbered) - convert each line
+    const lines = html.split('\n');
+    let inList = false;
+    let result = [];
     
-    // Lists (numbered)
-    html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ol>$&</ol>');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const listMatch = line.match(/^(\d+)\.\s+(.+)$/);
+      
+      if (listMatch) {
+        if (!inList) {
+          result.push('<ol>');
+          inList = true;
+        }
+        result.push(`<li>${listMatch[2]}</li>`);
+      } else {
+        if (inList) {
+          result.push('</ol>');
+          inList = false;
+        }
+        result.push(line);
+      }
+    }
+    
+    if (inList) {
+      result.push('</ol>');
+    }
+    
+    html = result.join('\n');
     
     // Paragraphs (text not in tags)
     html = html.split('\n\n').map(para => {
-      if (!para.match(/^<[h2|h3|ol|ul]/)) {
-        return `<p>${para}</p>`;
+      const trimmed = para.trim();
+      if (trimmed && !trimmed.match(/^<(h2|h3|ol|ul|li)/)) {
+        return `<p>${trimmed}</p>`;
       }
-      return para;
-    }).join('\n');
+      return trimmed;
+    }).join('\n\n');
     
     return html;
   }
@@ -133,6 +160,9 @@ export class PublisherAgent {
     
     // Remove category line
     cleaned = cleaned.replace(/^\*\*Catégorie:\*\*\s+.+\n\n/m, '');
+    
+    // Remove placeholder "## Sources" section (will be added properly later)
+    cleaned = cleaned.replace(/##\s+Sources\s*\n+Les sources seront ajoutées automatiquement\./gm, '');
     
     // Convert Markdown to HTML
     const html = this.markdownToHTML(cleaned.trim());
