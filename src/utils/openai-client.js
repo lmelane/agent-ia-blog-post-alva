@@ -35,10 +35,8 @@ export async function deepResearch(prompt, options = {}) {
       // Deep Research models automatically use web search
     };
 
-    // Add response_format only if specified
-    if (responseFormat === 'json') {
-      requestBody.response_format = { type: 'json_object' };
-    }
+    // IMPORTANT: Do not set response_format=json_object with web_search enabled models
+    // Deep Research uses web_search, which is incompatible with json_object formatting.
 
     const response = await openai.chat.completions.create(requestBody);
 

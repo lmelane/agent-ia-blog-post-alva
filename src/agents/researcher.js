@@ -250,11 +250,23 @@ Effectue maintenant une recherche EXHAUSTIVE et compile un dossier éditorial UL
       
       logger.info('Calling Deep Research for topic enrichment...');
       const result = await deepResearch(prompt, {
-        responseFormat: 'json',
+        // Ne pas utiliser response_format json avec web_search
         maxTokens: 16000, // Recherche très approfondie
       });
 
-      const dossier = JSON.parse(result.content);
+      // Tentative de parsing JSON robuste
+      let dossier;
+      try {
+        dossier = JSON.parse(result.content);
+      } catch (e) {
+        // Fallback: essayer d'extraire le bloc JSON si le modèle a ajouté du texte
+        const match = result.content.match(/\{[\s\S]*\}$/);
+        if (match) {
+          dossier = JSON.parse(match[0]);
+        } else {
+          throw new Error('Deep Research returned non-JSON content');
+        }
+      }
       
       // Merge dossier with original topic
       const enrichedTopic = {
@@ -267,7 +279,7 @@ Effectue maintenant une recherche EXHAUSTIVE et compile un dossier éditorial UL
         ],
         // Marquer comme enrichi
         enriched: true,
-        researchTokens: result.tokensUsed,
+        researchTokens: result.usage?.total_tokens,
       };
 
       logger.success(`✅ Topic enriched with ${dossier.dossierEditorial.sourcesComplementaires?.length || 0} additional sources`);
