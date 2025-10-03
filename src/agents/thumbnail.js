@@ -26,57 +26,30 @@ export class ThumbnailAgent {
    */
   buildThumbnailPrompt(articleSummary, articleTitle) {
     // Extract key concepts to create varied visuals
-    const concepts = this.extractVisualConcepts(articleTitle, articleSummary);
+    const visualDirection = this.extractVisualConcepts(articleTitle, articleSummary);
     
-    const basePrompt = `Ultra-realistic, professional photograph for a premium tech/business blog article.
+    // Keep summary short to stay under 2560 char limit
+    const shortSummary = articleSummary.substring(0, 200);
+    
+    const basePrompt = `Ultra-realistic professional photograph for tech blog.
 
-ARTICLE TOPIC: ${articleTitle}
+TOPIC: ${articleTitle}
 
-CONTEXT: ${articleSummary}
+VISUAL CONCEPT:
+${visualDirection}
 
-CREATIVE DIRECTION - CREATE A UNIQUE, VARIED VISUAL:
-${concepts}
+STYLE: Photorealistic 8K quality, professional DSLR aesthetic (Canon R5/Sony A7R IV), cinematic lighting, 16:9 horizontal format.
 
-VISUAL DIVERSITY REQUIREMENTS (choose ONE approach that fits the topic):
-1. MACRO/CLOSE-UP: Extreme close-up of technology components, circuits, chips, data cables, fiber optics
-2. ABSTRACT TECH: Light trails, data visualization, holographic displays, digital interfaces in 3D space
-3. WORKSPACE: Modern desk setup with specific tech (laptop, tablet, smartphone, AR glasses, robotics)
-4. ARCHITECTURAL: Futuristic building, data center, tech campus, innovation lab, clean room
-5. CONCEPTUAL: Metaphorical representation (network nodes, brain synapses, quantum particles, DNA strands)
-6. HANDS + TECH: Diverse hands interacting with cutting-edge technology (no faces)
-7. NATURE + TECH: Biomimicry, sustainable tech, green energy, organic shapes with digital elements
-8. INDUSTRIAL: Manufacturing robots, automated assembly, precision machinery, 3D printers
-
-STYLE VARIATIONS (rotate between):
-- Dramatic side lighting with strong shadows
-- Soft diffused natural window light
-- Neon/LED accent lighting (blue, purple, cyan tones)
-- Golden hour warm tones
-- High-key bright minimalist
-- Low-key moody cinematic
-- Vibrant colorful tech aesthetic
-
-COMPOSITION VARIETY:
-- Rule of thirds with negative space
-- Symmetrical centered composition
-- Diagonal dynamic angles
-- Overhead flat lay
-- Extreme perspective (worm's eye or bird's eye)
-- Shallow depth of field with bokeh
-- Wide environmental shot
-
-TECHNICAL SPECS:
-- 8K photorealistic quality
-- Professional camera aesthetic (Canon R5, Sony A7R IV, Hasselblad)
-- Perfect exposure, white balance, color grading
-- 16:9 horizontal format
+REQUIREMENTS:
+- Sharp focus, perfect exposure, color grading
+- Modern, clean, minimalist composition
 - NO text, logos, watermarks, UI elements
-- NO recognizable human faces
-- Sharp focus on main subject
+- NO recognizable faces
+- Unique visual that avoids generic "person at computer" stock photos
 
-MOOD: Match the article's tone (innovative, serious, exciting, futuristic, trustworthy)
+MOOD: Professional, innovative, trustworthy, futuristic
 
-IMPORTANT: Create a UNIQUE visual that stands out from typical "person at computer" stock photos. Be creative and specific to the article's subject matter.`;
+Create a stunning, magazine-quality image specific to this AI/tech topic.`;
     
     return basePrompt;
   }
@@ -88,33 +61,33 @@ IMPORTANT: Create a UNIQUE visual that stands out from typical "person at comput
     const lowerTitle = title.toLowerCase();
     const lowerSummary = summary.toLowerCase();
     
-    // Detect specific themes and suggest unique visuals
-    if (lowerTitle.includes('financement') || lowerTitle.includes('levée') || lowerTitle.includes('investissement')) {
-      return '- Focus on: Financial growth visualization, stock market displays, investment charts, currency symbols, venture capital concept\n- Avoid: Generic office scenes';
+    // Detect specific themes and suggest unique visuals (concise)
+    if (lowerTitle.includes('financement') || lowerTitle.includes('levée') || lowerTitle.includes('investissement') || lowerTitle.includes('funding')) {
+      return 'Financial growth charts, stock market displays, investment visualization, venture capital concept. Avoid generic offices.';
     }
     
-    if (lowerTitle.includes('partenariat') || lowerTitle.includes('collaboration')) {
-      return '- Focus on: Connected networks, handshake metaphor with tech elements, interlocking gears, puzzle pieces, collaborative workspace\n- Avoid: Standard meeting rooms';
+    if (lowerTitle.includes('partenariat') || lowerTitle.includes('collaboration') || lowerTitle.includes('partner')) {
+      return 'Connected networks, interlocking gears, puzzle pieces, collaborative tech workspace. Avoid standard meeting rooms.';
     }
     
-    if (lowerTitle.includes('régulation') || lowerTitle.includes('loi') || lowerTitle.includes('politique')) {
-      return '- Focus on: Legal documents with tech overlay, balance scales, government buildings, policy frameworks, compliance symbols\n- Avoid: Boring paperwork';
+    if (lowerTitle.includes('régulation') || lowerTitle.includes('loi') || lowerTitle.includes('politique') || lowerTitle.includes('regulation')) {
+      return 'Legal documents with tech overlay, balance scales, policy frameworks, compliance symbols. Avoid boring paperwork.';
     }
     
-    if (lowerTitle.includes('api') || lowerTitle.includes('plateforme') || lowerTitle.includes('outil')) {
-      return '- Focus on: Code on screens, API endpoints visualization, developer tools, terminal windows, software architecture diagrams\n- Avoid: Empty laptops';
+    if (lowerTitle.includes('api') || lowerTitle.includes('plateforme') || lowerTitle.includes('outil') || lowerTitle.includes('platform')) {
+      return 'Code on screens, API visualization, developer tools, terminal windows, software architecture. Avoid empty laptops.';
     }
     
-    if (lowerTitle.includes('gpt') || lowerTitle.includes('llm') || lowerTitle.includes('modèle')) {
-      return '- Focus on: Neural network visualization, AI brain concept, language processing, chatbot interface, transformer architecture\n- Avoid: Generic AI imagery';
+    if (lowerTitle.includes('gpt') || lowerTitle.includes('llm') || lowerTitle.includes('modèle') || lowerTitle.includes('model')) {
+      return 'Neural network visualization, AI brain concept, language processing, transformer architecture. Avoid generic AI imagery.';
     }
     
     if (lowerTitle.includes('automatisation') || lowerTitle.includes('automation')) {
-      return '- Focus on: Robotic arms, automated assembly, workflow diagrams, process optimization, industrial automation\n- Avoid: Simple computer screens';
+      return 'Robotic arms, automated assembly, workflow diagrams, industrial automation. Avoid simple computer screens.';
     }
     
     // Default: encourage variety
-    return '- Create a UNIQUE visual specific to this topic\n- Think beyond typical office/computer imagery\n- Use metaphors, abstract concepts, or specific technology relevant to the subject';
+    return 'Unique visual specific to this topic using metaphors, abstract tech concepts, or relevant technology. Avoid typical office/computer imagery.';
   }
 
   /**
