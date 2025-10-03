@@ -12,7 +12,7 @@ export class ThumbnailAgent {
     this.apiKey = process.env.REVE_API_KEY;
     this.apiUrl = 'https://api.reve.com/v1/image/create';
     this.outputDir = path.join(process.cwd(), 'articles', 'thumbnails');
-    this.modelId = process.env.REVE_MODEL_ID || null; // optional override
+    // No model override: the API quickstart shows only a prompt payload
   }
 
   /**
@@ -105,79 +105,86 @@ Create something visually striking and different.`;
     const prompt = this.buildThumbnailPrompt(articleSummary, articleTitle);
     logger.info('Thumbnail prompt:', { prompt: prompt.substring(0, 150) + '...' });
 
-    // Build a list of model attempts: env override first, then safer, then generic
-    const modelAttempts = [];
-    if (this.modelId) modelAttempts.push(this.modelId);
-    modelAttempts.push('thorn_safer_v1', 'thorn_v1');
-
     const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const model = modelAttempts[attempt - 1] || null;
-      const payload = {
-        prompt: prompt,
-        aspect_ratio: '16:9',
-      };
-      if (model) payload.model_id = model;
+      // First try with aspect_ratio; if 400 unrecognized param, fallback to minimal payload
+      const payloads = [
+        { prompt: prompt, aspect_ratio: '16:9' },
+        { prompt: prompt },
+      ];
 
-      try {
-        const response = await fetch(this.apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`,
-          },
-          body: JSON.stringify(payload),
-        });
+      for (let variant = 0; variant < payloads.length; variant++) {
+        const payload = payloads[variant];
+        try {
+          const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${this.apiKey}`,
+            },
+            body: JSON.stringify(payload),
+          });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Reve API error: ${response.status} - ${errorText}`);
+          if (!response.ok) {
+            const errorText = await response.text();
+            // If bad request and we used extended payload, try minimal immediately
+            if (response.status === 400 && variant === 0) {
+              logger.warn(`Reve payload with aspect_ratio rejected (400). Falling back to minimal payload. Details: ${errorText}`);
+              continue;
+            }
+            throw new Error(`Reve API error: ${response.status} - ${errorText}`);
+          }
+
+          const data = await response.json();
+
+          logger.info('Reve API response:', {
+            request_id: data.request_id,
+            credits_used: data.credits_used,
+            credits_remaining: data.credits_remaining,
+          });
+
+          if (data.content_violation) {
+            throw new Error('Content policy violation detected by Reve.com');
+          }
+
+          if (!data.image) {
+            throw new Error('No image data in Reve API response');
+          }
+
+          logger.success('Thumbnail generated successfully');
+          logger.info(`Credits used: ${data.credits_used}, remaining: ${data.credits_remaining}`);
+
+          const filename = await this.saveBase64Image(data.image, articleSlug);
+
+          return {
+            filename: filename,
+            localPath: path.join(this.outputDir, filename),
+            prompt: prompt,
+            generatedAt: new Date().toISOString(),
+            provider: 'reve.com',
+            request_id: data.request_id,
+            credits_used: data.credits_used,
+            credits_remaining: data.credits_remaining,
+          };
+        } catch (error) {
+          logger.warn(`Reve generation attempt ${attempt}/${maxAttempts} variant ${variant + 1} failed: ${error.message}`);
+          // If variant 0 failed with 400, loop continues to variant 1; otherwise go to retry/backoff
+          if (!(variant === 0 && /400/.test(error.message))) {
+            // Only backoff between outer attempts
+            break;
+          }
         }
-
-        const data = await response.json();
-
-        logger.info('Reve API response:', {
-          request_id: data.request_id,
-          credits_used: data.credits_used,
-          credits_remaining: data.credits_remaining,
-          model_attempted: model || 'default',
-        });
-
-        if (data.content_violation) {
-          throw new Error('Content policy violation detected by Reve.com');
-        }
-
-        if (!data.image) {
-          throw new Error('No image data in Reve API response');
-        }
-
-        logger.success('Thumbnail generated successfully');
-        logger.info(`Credits used: ${data.credits_used}, remaining: ${data.credits_remaining}`);
-
-        const filename = await this.saveBase64Image(data.image, articleSlug);
-
-        return {
-          filename: filename,
-          localPath: path.join(this.outputDir, filename),
-          prompt: prompt,
-          generatedAt: new Date().toISOString(),
-          provider: 'reve.com',
-          request_id: data.request_id,
-          credits_used: data.credits_used,
-          credits_remaining: data.credits_remaining,
-          model_used: model || 'default',
-        };
-      } catch (error) {
-        logger.warn(`Reve generation attempt ${attempt}/${maxAttempts} failed${model ? ` (model: ${model})` : ''}: ${error.message}`);
-        if (attempt < maxAttempts) {
-          const delayMs = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
-          await new Promise(res => setTimeout(res, delayMs));
-          continue;
-        }
-        logger.error('Failed to generate thumbnail after retries', error);
-        return null;
       }
+
+      if (attempt < maxAttempts) {
+        const delayMs = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
+        await new Promise(res => setTimeout(res, delayMs));
+        continue;
+      }
+
+      logger.error('Failed to generate thumbnail after retries');
+      return null;
     }
   }
 
