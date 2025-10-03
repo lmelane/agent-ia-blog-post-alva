@@ -22,44 +22,99 @@ export class ThumbnailAgent {
   }
 
   /**
-   * Build thumbnail prompt from article summary (ultra-realistic professional style)
+   * Build thumbnail prompt from article summary (ultra-realistic, highly varied style)
    */
   buildThumbnailPrompt(articleSummary, articleTitle) {
-    const basePrompt = `Ultra-realistic, professional photograph for a premium tech blog article.
+    // Extract key concepts to create varied visuals
+    const concepts = this.extractVisualConcepts(articleTitle, articleSummary);
+    
+    const basePrompt = `Ultra-realistic, professional photograph for a premium tech/business blog article.
 
-SUBJECT: ${articleTitle}
+ARTICLE TOPIC: ${articleTitle}
 
 CONTEXT: ${articleSummary}
 
-VISUAL REQUIREMENTS:
-- Photorealistic, high-end commercial photography quality
-- Sharp focus, professional lighting (soft natural light or studio lighting)
-- Modern, clean, minimalist composition with breathing space
-- Corporate/business aesthetic suitable for Fortune 500 companies
-- Cinematic color grading with balanced, professional tones
-- Depth of field with bokeh effect for visual interest
-- 16:9 aspect ratio, horizontal orientation
+CREATIVE DIRECTION - CREATE A UNIQUE, VARIED VISUAL:
+${concepts}
 
-CONTENT STYLE:
-- Real-world scene that metaphorically represents the AI/tech concept
-- Modern office environment, technology workspace, or abstract tech visualization
-- Professional business setting with high-end equipment
-- Clean, uncluttered background (white, soft grey, or blurred environment)
-- Contemporary, sophisticated, premium feel
+VISUAL DIVERSITY REQUIREMENTS (choose ONE approach that fits the topic):
+1. MACRO/CLOSE-UP: Extreme close-up of technology components, circuits, chips, data cables, fiber optics
+2. ABSTRACT TECH: Light trails, data visualization, holographic displays, digital interfaces in 3D space
+3. WORKSPACE: Modern desk setup with specific tech (laptop, tablet, smartphone, AR glasses, robotics)
+4. ARCHITECTURAL: Futuristic building, data center, tech campus, innovation lab, clean room
+5. CONCEPTUAL: Metaphorical representation (network nodes, brain synapses, quantum particles, DNA strands)
+6. HANDS + TECH: Diverse hands interacting with cutting-edge technology (no faces)
+7. NATURE + TECH: Biomimicry, sustainable tech, green energy, organic shapes with digital elements
+8. INDUSTRIAL: Manufacturing robots, automated assembly, precision machinery, 3D printers
+
+STYLE VARIATIONS (rotate between):
+- Dramatic side lighting with strong shadows
+- Soft diffused natural window light
+- Neon/LED accent lighting (blue, purple, cyan tones)
+- Golden hour warm tones
+- High-key bright minimalist
+- Low-key moody cinematic
+- Vibrant colorful tech aesthetic
+
+COMPOSITION VARIETY:
+- Rule of thirds with negative space
+- Symmetrical centered composition
+- Diagonal dynamic angles
+- Overhead flat lay
+- Extreme perspective (worm's eye or bird's eye)
+- Shallow depth of field with bokeh
+- Wide environmental shot
 
 TECHNICAL SPECS:
-- 8K resolution quality
-- Professional DSLR camera aesthetic (Canon EOS R5, Sony A7R IV style)
-- Perfect exposure and white balance
-- No text, no logos, no watermarks, no UI elements
-- No people's faces (to avoid uncanny valley)
-- Focus on objects, environments, abstract concepts, or hands interacting with technology
+- 8K photorealistic quality
+- Professional camera aesthetic (Canon R5, Sony A7R IV, Hasselblad)
+- Perfect exposure, white balance, color grading
+- 16:9 horizontal format
+- NO text, logos, watermarks, UI elements
+- NO recognizable human faces
+- Sharp focus on main subject
 
-MOOD: Professional, innovative, trustworthy, modern, aspirational
+MOOD: Match the article's tone (innovative, serious, exciting, futuristic, trustworthy)
 
-Create a stunning, magazine-quality photograph that instantly communicates the article's theme.`;
+IMPORTANT: Create a UNIQUE visual that stands out from typical "person at computer" stock photos. Be creative and specific to the article's subject matter.`;
     
     return basePrompt;
+  }
+
+  /**
+   * Extract visual concepts from title and summary
+   */
+  extractVisualConcepts(title, summary) {
+    const lowerTitle = title.toLowerCase();
+    const lowerSummary = summary.toLowerCase();
+    
+    // Detect specific themes and suggest unique visuals
+    if (lowerTitle.includes('financement') || lowerTitle.includes('levée') || lowerTitle.includes('investissement')) {
+      return '- Focus on: Financial growth visualization, stock market displays, investment charts, currency symbols, venture capital concept\n- Avoid: Generic office scenes';
+    }
+    
+    if (lowerTitle.includes('partenariat') || lowerTitle.includes('collaboration')) {
+      return '- Focus on: Connected networks, handshake metaphor with tech elements, interlocking gears, puzzle pieces, collaborative workspace\n- Avoid: Standard meeting rooms';
+    }
+    
+    if (lowerTitle.includes('régulation') || lowerTitle.includes('loi') || lowerTitle.includes('politique')) {
+      return '- Focus on: Legal documents with tech overlay, balance scales, government buildings, policy frameworks, compliance symbols\n- Avoid: Boring paperwork';
+    }
+    
+    if (lowerTitle.includes('api') || lowerTitle.includes('plateforme') || lowerTitle.includes('outil')) {
+      return '- Focus on: Code on screens, API endpoints visualization, developer tools, terminal windows, software architecture diagrams\n- Avoid: Empty laptops';
+    }
+    
+    if (lowerTitle.includes('gpt') || lowerTitle.includes('llm') || lowerTitle.includes('modèle')) {
+      return '- Focus on: Neural network visualization, AI brain concept, language processing, chatbot interface, transformer architecture\n- Avoid: Generic AI imagery';
+    }
+    
+    if (lowerTitle.includes('automatisation') || lowerTitle.includes('automation')) {
+      return '- Focus on: Robotic arms, automated assembly, workflow diagrams, process optimization, industrial automation\n- Avoid: Simple computer screens';
+    }
+    
+    // Default: encourage variety
+    return '- Create a UNIQUE visual specific to this topic\n- Think beyond typical office/computer imagery\n- Use metaphors, abstract concepts, or specific technology relevant to the subject';
   }
 
   /**
