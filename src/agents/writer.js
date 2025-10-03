@@ -14,18 +14,40 @@ export class WriterAgent {
    * Build prompt for article writing with strict structure
    */
   buildWritingPrompt(topic) {
-    return `Tu es un journaliste tech professionnel spécialisé en IA Business. Rédige un article EXCEPTIONNEL, engageant et professionnel en FRANÇAIS.
+    return `Tu es un rédacteur en chef expert Finance x IA, spécialisé dans les articles de fond style Les Échos.
 
-TOPIC INFORMATION:
-Titre: ${topic.titre}
-Catégorie: ${topic.categorie}
-Résumé: ${topic.resume}
-Impact: ${topic.impact}
+📁 DOSSIER ÉDITORIAL COMPLET:
 
-Sources:
-${topic.sources?.map((s, i) => `[${i + 1}] ${s.titre}: ${s.url}`).join('\n') || 'N/A'}
+SUJET: ${topic.titre}
+CATÉGORIE: ${topic.categorie}
+RÉSUMÉ: ${topic.resume}
+IMPACT BUSINESS: ${topic.impact}
 
-OBJECTIF: Créer un article qui se démarque par sa profondeur, son style journalistique et son engagement.
+ANGLE ÉDITORIAL:
+${topic.angleEditorial || 'Analyser l\'impact business et les implications stratégiques'}
+
+QUESTIONS CENTRALES (à répondre dans l'article):
+${topic.questionsCentrales?.map((q, i) => `${i+1}. ${q}`).join('\n') || '1. Quels sont les enjeux ?\n2. Quelles implications pour les entreprises ?\n3. Quelles perspectives d\'avenir ?'}
+
+DONNÉES CHIFFRÉES (à intégrer):
+${JSON.stringify(topic.donneesChiffrees || {montants: 'À rechercher', pourcentages: 'À analyser', previsions: 'À projeter'}, null, 2)}
+
+CONTEXTE HISTORIQUE:
+${topic.contexteHistorique || 'Situer cette actualité dans son contexte historique et sectoriel'}
+
+COMPARAISONS:
+${topic.comparaisons || 'Comparer avec situations similaires, concurrents, autres marchés'}
+
+CITATIONS EXPERTS:
+${topic.citationsExperts?.map(c => `- ${c.auteur}: "${c.citation}" (${c.source})`).join('\n') || 'Intégrer des citations si disponibles dans les sources'}
+
+CONTROVERSES/LIMITES:
+${topic.controverses || 'Analyser les défis, risques, critiques potentielles'}
+
+SOURCES (${topic.sources?.length || 0}):
+${topic.sources?.map((s, i) => `[${i + 1}] ${s.titre}: ${s.url} (${s.date})`).join('\n') || 'N/A'}
+
+OBJECTIF: Créer un article RICHE et DÉTAILLÉ (1500-2000 mots) avec profondeur d'analyse, style Les Échos.
 
 STRUCTURE STRICTE À SUIVRE:
 

@@ -31,16 +31,16 @@ DATE ET HEURE ACTUELLES: ${today.toISOString()} (${today.toLocaleDateString('fr-
 
 MISSION ULTRA-CRITIQUE: Trouve 5-10 actualités IA BUSINESS publiées dans les DERNIÈRES 48 HEURES (depuis le ${twoDaysAgo} jusqu'à maintenant ${todayStr}).
 
-FOCUS EXCLUSIF - ACTUALITÉS IA BUSINESS/ENTREPRISE:
+FOCUS EXCLUSIF - FINANCE x IA (actualités chaudes):
 ✅ CE QU'ON VEUT:
-- Lancements de produits IA commerciaux (nouveaux modèles, APIs, services)
-- Annonces d'entreprises tech (OpenAI, Google, Meta, Anthropic, Microsoft, startups)
-- Financements, levées de fonds, acquisitions, valorisations
-- Nouvelles régulations et politiques IA affectant les entreprises
-- Partenariats stratégiques et collaborations business
-- Outils IA pour entreprises (productivité, marketing, ventes, etc.)
-- Cas d'usage IA en entreprise et ROI
-- Tendances du marché IA et prévisions business
+- Fintech IA: néobanques, paiements intelligents, crédit scoring IA
+- Trading algorithmique: nouveaux algos, hedge funds IA, robo-advisors
+- Assurtech: évaluation risques IA, tarification dynamique, détection fraude
+- Levées de fonds fintech IA, acquisitions, valorisations
+- Régulations financières IA: RegTech, compliance, AML/KYC
+- Crypto x IA: trading bots, DeFi IA, blockchain + machine learning
+- Banking IA: chatbots bancaires, conseil financier IA, automatisation back-office
+- Analyse prédictive: market intelligence, forecasting, risk management IA
 
 ❌ CE QU'ON NE VEUT PAS:
 - Recherche académique pure (papers, études de laboratoire)
@@ -48,12 +48,33 @@ FOCUS EXCLUSIF - ACTUALITÉS IA BUSINESS/ENTREPRISE:
 - Publications scientifiques sans impact commercial
 - Percées en recherche fondamentale sans produit
 
-CRITÈRES ULTRA-STRICTS:
-1. Actualités publiées dans les 48 DERNIÈRES HEURES UNIQUEMENT (depuis ${twoDaysAgo} jusqu'à ${todayStr})
-2. Impact BUSINESS/COMMERCIAL immédiat
-3. Sources multiples et crédibles avec URLs
-4. Pertinence pour les entreprises et décideurs
-5. OBLIGATOIRE: Dates de publication précises au format ISO (YYYY-MM-DD)
+🔎 MÉTHODOLOGIE RÉDACTEUR EN CHEF - 3 PHASES:
+
+PHASE 1 - VEILLE & IDENTIFICATION:
+1. Identifier 10-15 sujets chauds Finance x IA des 48 dernières heures
+2. Vérifier la fraîcheur (depuis ${twoDaysAgo} jusqu'à ${todayStr})
+3. Évaluer l'impact business immédiat
+
+PHASE 2 - RECHERCHE APPROFONDIE (pour chaque sujet):
+4. Compiler 3-5 sources DIFFÉRENTES minimum (croiser les informations)
+5. Extraire données chiffrées: montants, pourcentages, prévisions, statistiques
+6. Identifier citations d'experts: dirigeants, analystes, chercheurs
+7. Contextualiser: historique, comparaisons, tendances secteur
+8. Repérer points de vue contradictoires et controverses
+
+PHASE 3 - DOSSIER ÉDITORIAL:
+9. Angle éditorial clair: pourquoi c'est important MAINTENANT
+10. Questions centrales que le lecteur se pose
+11. Éléments clés à développer dans l'article
+12. Implications économiques, stratégiques, techniques
+13. Public cible: décideurs finance, investisseurs, professionnels fintech
+
+CRITÈRES DE QUALITÉ:
+- Dates de publication précises (ISO: YYYY-MM-DD)
+- URLs sources vérifiables
+- Minimum 3 sources par sujet
+- Données chiffrées concrètes
+- Pertinence pour professionnels finance
 
 EXEMPLES D'ACTUALITÉS À CHERCHER:
 - "OpenAI lance GPT-5 pour les entreprises"
@@ -92,35 +113,59 @@ For each topic, assign it to ONE of these 8 specific categories based on its pri
 8. **Partenariats**: Strategic partnerships, collaborations, integrations, alliances
    Exemples: "OpenAI s'associe avec Microsoft", "Google et Salesforce", "Partenariat Meta-IBM"
 
-REQUIRED JSON FORMAT:
+REQUIRED JSON FORMAT (DOSSIER ÉDITORIAL COMPLET):
 Return a JSON object with this exact structure:
 
 {
   "topics": [
     {
       "titre": "Clear, compelling headline",
-      "resume": "2-3 sentence overview of the news",
-      "impact": "Why this matters - business/tech implications (1-2 sentences)",
+      "resume": "3-4 sentences overview with KEY DATA (chiffres, montants, dates)",
+      "impact": "Why this matters NOW - business implications (2-3 sentences)",
       "categorie": "ONE of: ${categoriesStr}",
+      "angleEditorial": "Unique editorial angle - what makes this story interesting",
+      "questionsCentrales": [
+        "Question 1 que le lecteur se pose",
+        "Question 2 que le lecteur se pose",
+        "Question 3 que le lecteur se pose"
+      ],
+      "donneesChiffrees": {
+        "montants": "Ex: 500M$, 15B€",
+        "pourcentages": "Ex: +45% croissance",
+        "previsions": "Ex: marché de 2T$ en 2030"
+      },
+      "contexteHistorique": "Brief historical context, timeline, precedents (2-3 sentences)",
+      "comparaisons": "Comparisons with competitors, other markets, previous situations",
+      "citationsExperts": [
+        {
+          "auteur": "Name, Title, Company",
+          "citation": "Exact quote or paraphrase",
+          "source": "Source name"
+        }
+      ],
+      "controverses": "Potential challenges, limits, criticisms, risks",
       "sources": [
         {
           "titre": "Source name",
           "url": "https://...",
-          "date": "2025-10-01"
+          "date": "2025-10-01",
+          "typeSource": "media/report/blog/official"
         }
       ],
-      "keywords": ["keyword1", "keyword2", "keyword3"],
+      "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
       "publishDate": "2025-10-01T10:00:00Z"
     }
   ]
 }
 
-IMPORTANT:
-- Return ONLY valid JSON
-- Each topic must have 2-5 sources with URLs and dates
-- Filter out anything older than 72 hours
-- Choose the MOST relevant category for each topic
-- Include specific data points and metrics in the resume`;
+EXIGENCES CRITIQUES:
+- Minimum 3-5 sources DIFFÉRENTES par sujet (croiser les infos)
+- Données chiffrées CONCRÈTES (pas de généralités)
+- Citations d'experts si disponibles
+- Contexte historique pour situer l'actualité
+- Points de vue contradictoires
+- Angle éditorial unique
+- Return ONLY valid JSON`;
   }
 
   /**
