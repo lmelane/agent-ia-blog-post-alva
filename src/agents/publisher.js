@@ -172,14 +172,36 @@ export class PublisherAgent {
       // Add sources to article content
       const articleWithSources = this.addSourcesToArticle(cleanedArticle, frontMatter.sources);
       
-      // Get category ID from category name
+      // STEP 1: Save to database first to get public thumbnail URL
+      logger.info('💾 Saving article to database...');
+      
+      const thumbnailData = frontMatter.thumbnail?.localPath 
+        ? await fs.readFile(frontMatter.thumbnail.localPath)
+        : null;
+
+      const dbResult = await saveArticle({
+        title: frontMatter.title,
+        slug: frontMatter.slug,
+        category: frontMatter.category,
+        excerpt: frontMatter.excerpt,
+        content: articleWithSources,
+        thumbnailData,
+        thumbnailFilename: frontMatter.thumbnail?.filename,
+        webflowItemId: null, // Will be updated after Webflow creation
+        metadata: frontMatter,
+      });
+
+      logger.success(`✅ Article saved to database`);
+      logger.info(`Thumbnail URL: ${dbResult.thumbnailUrl}`);
+      
+      // STEP 2: Get category ID from category name
       const categoryId = this.getCategoryId(frontMatter.category);
       
       if (!categoryId) {
         logger.warn(`Category not found in mapping: ${frontMatter.category}`);
       }
       
-      // Prepare field data matching Webflow collection "Articles"
+      // STEP 3: Prepare field data with public thumbnail URL
       const fieldData = {
         // Champs obligatoires
         name: frontMatter.title,                              // Name (PlainText, Required)
@@ -198,6 +220,9 @@ export class PublisherAgent {
         // Temps de lecture
         'temps-de-lecture': `${frontMatter.reading_time} min`, // temps-de-lecture (PlainText)
         
+        // Thumbnail URL publique
+        'thumbnail-link': dbResult.thumbnailUrl,              // thumbnail-link (PlainText) - URL publique
+        
         // SEO
         'meta-title': frontMatter.seo?.title || frontMatter.title,           // meta-title (PlainText)
         'meta-description': frontMatter.seo?.description || frontMatter.excerpt, // meta-description (PlainText)
@@ -205,12 +230,6 @@ export class PublisherAgent {
         'meta-keywords': frontMatter.seo?.keywords?.join(', ') || '',        // meta-keywords (PlainText)
         'mots-cles-seo': frontMatter.seo?.keywords?.join(', ') || '',        // mots-cles-seo (PlainText)
       };
-
-      // Add thumbnail link (chemin local de l'image)
-      if (frontMatter.thumbnail?.localPath) {
-        fieldData['thumbnail-link'] = frontMatter.thumbnail.localPath; // thumbnail-link (PlainText)
-        logger.info(`Thumbnail link added: ${frontMatter.thumbnail.localPath}`);
-      }
 
       // Create collection item
       const response = await fetch(
@@ -241,26 +260,6 @@ export class PublisherAgent {
       logger.info(`Item ID: ${data.id}`);
       logger.info(`Slug: ${data.fieldData.slug}`);
 
-      // Save to database with thumbnail
-      const thumbnailData = frontMatter.thumbnail?.localPath 
-        ? await fs.readFile(frontMatter.thumbnail.localPath)
-        : null;
-
-      const dbResult = await saveArticle({
-        title: frontMatter.title,
-        slug: frontMatter.slug,
-        category: frontMatter.category,
-        excerpt: frontMatter.excerpt,
-        content: articleWithSources,
-        thumbnailData,
-        thumbnailFilename: frontMatter.thumbnail?.filename,
-        webflowItemId: data.id,
-        metadata: frontMatter,
-      });
-
-      logger.success(`✅ Article saved to database with public thumbnail URL`);
-      logger.info(`Thumbnail URL: ${dbResult.thumbnailUrl}`);
-
       // Publish site to make article live
       await this.publishSite();
 
@@ -277,6 +276,39 @@ export class PublisherAgent {
         success: false,
         error: error.message,
       };
+    }
+  }
+
+  /**
+   * Update Webflow item with additional fields
+   */
+  async updateWebflowItem(itemId, fieldData) {
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/collections/${this.collectionId}/items/${itemId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+          },
+          body: JSON.stringify({
+            fieldData,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        logger.warn(`Failed to update Webflow item: ${response.status} - ${errorText}`);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      logger.warn('Could not update Webflow item', error);
+      return false;
     }
   }
 

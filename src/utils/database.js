@@ -82,7 +82,7 @@ export async function saveArticle(articleData) {
     const articleId = result.rows[0].id;
     
     // Generate public thumbnail URL
-    const thumbnailUrl = `${process.env.PUBLIC_URL || 'https://agent-ia-blog-post-alva-production.up.railway.app'}/api/thumbnail/${slug}`;
+    const thumbnailUrl = `${process.env.PUBLIC_URL || 'https://web-production-da83a.up.railway.app'}/api/thumbnail/${slug}`;
     
     // Update with thumbnail URL
     await pool.query(
