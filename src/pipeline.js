@@ -59,13 +59,18 @@ export class Pipeline {
       logger.success(`Best topic selected: ${bestTopic.titre}`);
       logger.info(`Category: ${bestTopic.categorie} | Score: ${bestTopic.scoring.total}/100`);
 
-      // Step 3: Writer - Generate article (1000-1500 words, FAQ, CTA)
-      logger.info('\n📍 STEP 3/5: Writer - Generating article');
+      // Step 3: Researcher - Deep research & dossier compilation
+      logger.info('\n📍 STEP 3/6: Researcher - Deep research & editorial dossier');
       logger.info('─'.repeat(60));
-      const writerResult = await this.writer.run();
+      const enrichedTopic = await this.researcher.run(bestTopic);
 
-      // Step 4: Thumbnail - Generate article thumbnail
-      logger.info('\n📍 STEP 4/5: Thumbnail - Generating article image');
+      // Step 4: Writer - Generate article (800-1500 words, FAQ, CTA)
+      logger.info('\n📍 STEP 4/6: Writer - Generating article');
+      logger.info('─'.repeat(60));
+      const writerResult = await this.writer.run(enrichedTopic);
+
+      // Step 5: Thumbnail - Generate article thumbnail
+      logger.info('\n📍 STEP 5/6: Thumbnail - Generating article image');
       logger.info('─'.repeat(60));
       const thumbnailResult = await this.thumbnail.run(
         writerResult.article,
@@ -78,8 +83,8 @@ export class Pipeline {
         logger.success(`Thumbnail generated: ${thumbnailResult.thumbnail.filename}`);
       }
 
-      // Step 5: Publisher (optional)
-      logger.info('\n📍 STEP 5/5: Publisher - Publishing article');
+      // Step 6: Publisher (optional)
+      logger.info('\n📍 STEP 6/6: Publisher - Publishing article');
       logger.info('─'.repeat(60));
       let publishResult = null;
       
