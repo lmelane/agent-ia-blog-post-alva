@@ -1,3 +1,37 @@
+  /**
+   * Fetch categories from Webflow and build a name -> id map
+   */
+  async fetchCategoriesMap() {
+    try {
+      const url = `${this.apiUrl}/collections/${this.categoryCollectionId}/items?limit=100`;
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        logger.warn(`Failed to fetch Webflow categories: ${response.status}`);
+        return {};
+      }
+
+      const data = await response.json();
+      const items = data.items || [];
+      const map = {};
+      for (const it of items) {
+        // Prefer fieldData.name as the human name
+        const name = it.fieldData?.name || it.name || it.fieldData?.title;
+        if (name) map[name.trim()] = it.id;
+      }
+      logger.info(`Loaded ${Object.keys(map).length} Webflow categories`);
+      return map;
+    } catch (err) {
+      logger.warn('Could not fetch Webflow categories', err);
+      return {};
+    }
+  }
+
 import fetch from 'node-fetch';
 import fs from 'fs/promises';
 import logger from '../utils/logger.js';
@@ -232,8 +266,13 @@ export class PublisherAgent {
       logger.success(`✅ Article saved to database`);
       logger.info(`Thumbnail URL: ${dbResult.thumbnailUrl}`);
       
-      // STEP 2: Get category ID from category name
-      const categoryId = this.getCategoryId(frontMatter.category);
+      // STEP 2: Resolve category ID from Webflow categories collection
+      const categoriesMap = await this.fetchCategoriesMap();
+      let categoryId = categoriesMap[frontMatter.category];
+      if (!categoryId) {
+        // Fallback to static mapping (legacy)
+        categoryId = this.getCategoryId(frontMatter.category);
+      }
       
       if (!categoryId) {
         logger.warn(`Category not found in mapping: ${frontMatter.category}`);
