@@ -18,12 +18,12 @@ export const openai = new OpenAI({
 export async function deepResearch(prompt, options = {}) {
   const {
     model = config.openai.deepResearchModel,
-    temperature = 0.7,
     maxTokens = 4000,
+    responseFormat = 'text',
   } = options;
 
   try {
-    const response = await openai.chat.completions.create({
+    const requestBody = {
       model,
       messages: [
         {
@@ -31,12 +31,16 @@ export async function deepResearch(prompt, options = {}) {
           content: prompt,
         },
       ],
-      temperature,
       max_tokens: maxTokens,
-      // Enable web search as data source for Deep Research
-      response_format: { type: 'text' },
       // Deep Research models automatically use web search
-    });
+    };
+
+    // Add response_format only if specified
+    if (responseFormat === 'json') {
+      requestBody.response_format = { type: 'json_object' };
+    }
+
+    const response = await openai.chat.completions.create(requestBody);
 
     return {
       content: response.choices[0].message.content,
