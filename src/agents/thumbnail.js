@@ -36,23 +36,47 @@ export class ThumbnailAgent {
     const facesPolicy = prof.faces || 'allow';
     const aspect = prof.aspect_ratio || '16:9';
 
-    const basePrompt = `Documentary editorial photograph, ultra realistic, 8K quality, natural lighting (${timeOfDay}), realistic colors, ${aspect}.
+    // FRONT-LOADING: Style keywords first for maximum weight
+    const basePrompt = `[Documentary editorial photograph] [ultra realistic] [8K quality] [authentic photojournalism]
+
+STYLE PRIORITY: realistic documentary, no illustrations, no CGI, no collage, no split-screen, no surreal elements, no artistic stylization.
 
 TITLE CONTEXT: ${articleTitle}
 
 SUBJECT & SCENE: ${visualDirection}
 
-STYLE: authentic photojournalism, candid human expressions, raw realism, unscripted moment, tactile textures, natural imperfections. Avoid CGI, illustration, or cinematic over-stylization.
+STYLE: [realistic:1.3] authentic photojournalism style, candid human expressions, raw realism, unscripted moment, [tactile textures:1.2] (fabric weave visible, paper grain, metal reflections), natural imperfections (slight motion blur, authentic shadows, real depth of field, visible skin pores if faces present).
 
-CREATIVE DIRECTION: capture a decisive moment in context; environmental storytelling with VISIBLE SIGNATURE ELEMENTS (logos, flags, recognizable French/EU branding, equipment labels, newspaper mastheads, architectural landmarks); imperfect framing like real reportage; elements in motion; depth and emotion. Include subtle flaws (slight blur in background, film grain, real shadows).
+NEGATIVE PROMPTS: no illustrations, no collage, no split-screen, no diptych, no multiple panels, no grid, no surreal elements, no repeated patterns, no extra limbs, no CGI look, no overly artistic composition, no stock photo aesthetic.
 
-CAMERA: 35mm lens, f/2.8, ISO 400, shutter 1/250; handheld camera feeling; natural light (window, daylight, lamps). Color grading: subtle documentary tone, neutral contrast, soft film grain (${filmStock} look).
+COMPOSITION: shot from eye-level with slight tilt, mid-shot or close-up, shallow depth of field (f/2.8), foreground sharp with soft bokeh background, rule of thirds (subject on left or right third), leading lines toward subject, slight foreground element for depth, environmental context visible but blurred. Full frame, no cropping, preserve full scene, single coherent frame.
 
-FRAMING: rule of thirds with natural variation; dynamic but not staged; focus on realism. FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid. One cohesive photograph.
+CREATIVE DIRECTION: capture a decisive moment in context; environmental storytelling with VISIBLE SIGNATURE ELEMENTS (logos, flags, recognizable French/EU branding, equipment labels, newspaper mastheads, architectural landmarks); imperfect framing like real reportage; elements in motion; depth and emotion. Include subtle flaws (slight blur in background, film grain, real shadows, natural lens flare).
+
+LIGHTING & ATMOSPHERE: natural ${timeOfDay} light (soft window light, diffused daylight, practical lamps), warm color temperature (3200-5600K), subtle rim light on subjects, authentic shadows (not harsh), atmospheric haze or dust particles if indoor.
+
+CAMERA TECHNICAL: 35mm lens equivalent, f/2.8 aperture, ISO 400, shutter 1/250s, handheld camera feeling (slight imperfection in framing), natural light sources only. Color grading: subtle documentary tone, neutral contrast, soft film grain (${filmStock} look, Kodak Portra 400 or Fuji Pro 400H aesthetic).
+
+DETAILS & TEXTURES: [ultra detailed:1.2], high resolution, [fine film grain], subtle texture, tactile textures with visible details (fabric weave, paper texture, screen pixels, metal reflections, wood grain), realistic materials (matte plastics, brushed metal, glossy screens, paper documents), natural wear and tear on objects, slight motion blur on background elements.
+
+FRAMING: FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid. One cohesive photograph with clear focal point.
 
 LOCATION BIAS: ${locationBias}. Faces: ${facesPolicy}.
 
-CRITICAL: Include at least ONE visible signature element that anchors the image to the specific topic (equipment with labels, French/EU flags, recognizable French architecture/skyline, French newspapers/documents, branded materials, currency symbols, domain names on screens). Avoid generic stock photo look.`;
+CRITICAL SIGNATURE ELEMENTS (at least ONE clearly visible):
+- [French flag Tricolore on wall or desk]
+- [EU flag with stars visible]
+- [French newspaper "Les Échos" or "Le Monde" printed masthead]
+- [.fr domain visible on computer screen]
+- [€ currency symbol on documents or screens]
+- [French company logo (EDF, Orange, BNP Paribas, etc.)]
+- [AZERTY keyboard layout visible]
+- [French architectural landmark (Eiffel Tower silhouette, Haussmann building, La Défense tower)]
+- [French signage or product packaging with French text]
+
+ANCHORING: These elements must be simple, clear, concrete, recognizable. Place them naturally in scene (on wall, desk, screen, background).
+
+FINAL DIRECTIVE: Authentic French/European documentary editorial style. No generic stock photo look. Realistic, grounded, recognizable French context.`;
 
     return basePrompt;
   }
@@ -122,6 +146,29 @@ CRITICAL: Include at least ONE visible signature element that anchors the image 
   }
 
   /**
+   * Build simplified fallback prompt (less constraints)
+   */
+  buildSimplifiedPrompt(articleSummary, articleTitle) {
+    const visualDirection = this.extractVisualConcepts(articleTitle, articleSummary);
+    const prof = config.thumbnail?.editorial_profile || {};
+    const aspect = prof.aspect_ratio || '16:9';
+    
+    return `Documentary editorial photograph, ultra realistic, 8K quality, natural lighting.
+
+TITLE: ${articleTitle}
+
+SCENE: ${visualDirection}
+
+STYLE: authentic photojournalism, realistic, candid expressions, natural imperfections.
+
+COMPOSITION: rule of thirds, shallow depth of field, single frame.
+
+SIGNATURE: Include French or European visual element (flag, newspaper, architecture, branding).
+
+Format: ${aspect}. No collage, no split-screen.`;
+  }
+
+  /**
    * Generate thumbnail image using Reve.com
    */
   async generateThumbnail(articleSummary, articleTitle, articleSlug) {
@@ -132,16 +179,25 @@ CRITICAL: Include at least ONE visible signature element that anchors the image 
 
     logger.info('🎨 Generating thumbnail image with Reve.com...');
 
-    const prompt = this.buildThumbnailPrompt(articleSummary, articleTitle);
-    logger.info('Thumbnail prompt:', { prompt: prompt.substring(0, 150) + '...' });
+    const fullPrompt = this.buildThumbnailPrompt(articleSummary, articleTitle);
+    const simplifiedPrompt = this.buildSimplifiedPrompt(articleSummary, articleTitle);
+    
+    logger.info('Thumbnail prompt (full):', { prompt: fullPrompt.substring(0, 150) + '...' });
 
     const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      // Strategy: full prompt first, then simplified if fails, then minimal
+      const promptToUse = attempt === 1 ? fullPrompt : (attempt === 2 ? simplifiedPrompt : fullPrompt);
+      
       // First try with aspect_ratio; if 400 unrecognized param, fallback to minimal payload
       const payloads = [
-        { prompt: prompt, aspect_ratio: (config.thumbnail?.editorial_profile?.aspect_ratio || '16:9') },
-        { prompt: prompt },
+        { prompt: promptToUse, aspect_ratio: (config.thumbnail?.editorial_profile?.aspect_ratio || '16:9') },
+        { prompt: promptToUse },
       ];
+      
+      if (attempt > 1) {
+        logger.info(`Attempt ${attempt}: using ${attempt === 2 ? 'simplified' : 'full'} prompt`);
+      }
 
       for (let variant = 0; variant < payloads.length; variant++) {
         const payload = payloads[variant];
@@ -158,11 +214,19 @@ CRITICAL: Include at least ONE visible signature element that anchors the image 
 
           if (!response.ok) {
             const errorText = await response.text();
+            
+            // Content violation: try simplified prompt on next attempt
+            if (response.status === 400 && errorText.includes('content')) {
+              logger.warn(`Content violation detected. Will retry with simplified prompt. Details: ${errorText}`);
+              break; // Go to next attempt with simplified prompt
+            }
+            
             // If bad request and we used extended payload, try minimal immediately
             if (response.status === 400 && variant === 0) {
               logger.warn(`Reve payload with aspect_ratio rejected (400). Falling back to minimal payload. Details: ${errorText}`);
               continue;
             }
+            
             throw new Error(`Reve API error: ${response.status} - ${errorText}`);
           }
 
@@ -175,7 +239,8 @@ CRITICAL: Include at least ONE visible signature element that anchors the image 
           });
 
           if (data.content_violation) {
-            throw new Error('Content policy violation detected by Reve.com');
+            logger.warn('Content policy violation detected. Retrying with simplified prompt.');
+            break; // Go to next attempt with simplified prompt
           }
 
           if (!data.image) {
