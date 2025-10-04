@@ -219,6 +219,12 @@ export class PublisherAgent {
     if (!sources || sources.length === 0) return articleHtml;
 
     let html = articleHtml;
+    
+    // Remove existing Sources section from Writer (text format)
+    // Pattern: ## Sources\n[1] Title: URL (date)\n[2] Title: URL (date)...
+    html = html.replace(/<h2>Sources<\/h2>[\s\S]*?(?=<h2>|$)/i, '');
+    
+    // Add clean HTML sources list
     html += '\n\n<h2>Sources</h2>\n<ol>';
     sources.forEach((source) => {
       const title = source.titre || source.title || 'Source';
