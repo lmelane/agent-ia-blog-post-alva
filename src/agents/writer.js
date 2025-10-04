@@ -143,7 +143,15 @@ Réponse concise et précise.
 **Call-to-Action:** [Incitation à l'action - ex: "Restez informé des dernières innovations IA en suivant notre newsletter" ou "Découvrez comment cette technologie peut transformer votre entreprise"]
 
 ## Sources
-[TOUTES les sources fournies ci-dessus DOIVENT être listées ici dans l'ordre, même si elles ne sont pas citées dans le texte]
+
+⚠️ CRITIQUE: Tu DOIS lister TOUTES les ${topic.sources?.length || 0} sources fournies ci-dessus, dans l'ordre exact.
+Format obligatoire pour CHAQUE source:
+1. [Titre de la source 1](URL1) (date1)
+2. [Titre de la source 2](URL2) (date2)
+3. [Titre de la source 3](URL3) (date3)
+... jusqu'à la source ${topic.sources?.length || 0}
+
+NE PAS omettre de sources. NE PAS en inventer. Copier EXACTEMENT les ${topic.sources?.length || 0} sources listées ci-dessus.
 
 ⚠️ RÈGLE TYPOGRAPHIQUE FRANÇAISE IMPORTANTE:
 - Titres H1, H2, H3 : SEULEMENT la première lettre en majuscule
