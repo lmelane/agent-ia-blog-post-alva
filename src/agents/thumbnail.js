@@ -23,29 +23,122 @@ export class ThumbnailAgent {
   }
 
   /**
-   * Build thumbnail prompt from article summary (real-life editorial/documentary style)
+   * Build thumbnail prompt from article summary and title
+   * Style: Les Échos editorial illustration (minimalist, institutional, vectorial)
    */
   buildThumbnailPrompt(articleSummary, articleTitle) {
-    // Extract key concepts for REAL scenes
-    const visualDirection = this.extractVisualConcepts(articleTitle, articleSummary);
+    // Extract domain, key elements, and visual metaphors
+    const { domain, keyElements, palette, visualSummary } = this.extractEditorialConcepts(articleTitle, articleSummary);
 
-    const prof = config.thumbnail?.editorial_profile || {};
-    const filmStock = prof.film_stock || 'Portra 400';
-    const timeOfDay = prof.time_of_day || 'daylight';
-    const locationBias = prof.location_bias || 'office';
-    const facesPolicy = prof.faces || 'allow';
-    const aspect = prof.aspect_ratio || '16:9';
+    const aspect = config.thumbnail?.editorial_profile?.aspect_ratio || '16:9';
 
-    // FRONT-LOADING: Style keywords first for maximum weight
-    // Target: 400-500 chars (50-120 words) for optimal Reve API performance
-    // Structure: Scene description + Technical style + Loïc MELANE Signature + Directive
-    const basePrompt = `Editorial documentary photograph: ${visualDirection}, natural ${timeOfDay} light casting authentic shadows, pigment-rich colors, ultra-sharp details, glossy textures, strong contrasts. French/EU signature element visible (Tricolore flag, EU stars, Les Échos/Le Monde newspaper, .fr domain, € symbol, French logo, AZERTY keyboard, or Eiffel/Haussmann architecture). Shot with Loïc MELANE Signature preset, Fujifilm GFX100S II, 80mm f/1.7, cinematic editorial style.`;
+    // STRUCTURE: Les Échos editorial style
+    const basePrompt = `Minimalist editorial illustration, *Les Échos* style. Subject: ${domain}. Key elements: ${keyElements}. Article title: "${articleTitle}". Visual summary: ${visualSummary}. Style: sober institutional vector illustration. Palette: ${palette}. Clear professional composition, suitable for economic daily newspaper. Format: ${aspect}. Shot with Loïc MELANE Signature preset.`;
 
     return basePrompt;
   }
 
   /**
-   * Extract visual concepts from title and summary
+   * Extract editorial concepts for Les Échos style illustration
+   * Returns: { domain, keyElements, palette, visualSummary }
+   */
+  extractEditorialConcepts(title, summary) {
+    const lowerTitle = title.toLowerCase();
+    const lowerSummary = (summary || '').toLowerCase();
+    const combinedText = `${lowerTitle} ${lowerSummary}`;
+    
+    // Extract amount if present (e.g., "100M€", "1 milliard")
+    const amountMatch = summary.match(/(\d+)\s*(million|milliard|M€|M\$|B€|B\$|%)/gi);
+    const amounts = amountMatch ? amountMatch.join(', ') : null;
+    
+    // Energy / Green / Climate
+    if (
+      combinedText.includes('énergie') || combinedText.includes('energie') || combinedText.includes('energy') ||
+      combinedText.includes('vert') || combinedText.includes('green') || combinedText.includes('climat') ||
+      combinedText.includes('renouvelable') || combinedText.includes('solaire') || combinedText.includes('éolien')
+    ) {
+      return {
+        domain: 'green energy and AI',
+        keyElements: `renewable energy symbols (solar panels, wind turbines), AI network flows, France map outline, ${amounts ? `investment figure (${amounts})` : 'growth charts'}, energy grid visualization`,
+        palette: 'dark blue, elegant grey, white, with green accents for growth and sustainability',
+        visualSummary: amounts ? `major investment (${amounts}) to propel AI in renewable energy, French energy transition` : 'AI-powered energy transition in France, renewable infrastructure'
+      };
+    }
+    
+    // Financing / Investment / Funding
+    if (
+      combinedText.includes('financement') || combinedText.includes('levée') || combinedText.includes('investissement') ||
+      combinedText.includes('funding') || combinedText.includes('million') || combinedText.includes('milliard')
+    ) {
+      return {
+        domain: 'fintech AI and algorithmic trading' + (combinedText.includes('trading') || combinedText.includes('algoset') ? ', startup Algoset' : ''),
+        keyElements: `dynamic stock market charts, digital data flows, symbolic algorithms, ${amounts ? `funding symbol (${amounts})` : 'investment rounds'}, investors (Sequoia Capital, venture capital)`,
+        palette: 'dark blue, elegant grey, white, with green touches for growth',
+        visualSummary: amounts ? `major funding round (${amounts}) to propel AI, growth and European expansion` : 'AI-powered fintech growth, algorithmic trading innovation'
+      };
+    }
+    
+    // Banking / Finance
+    if (combinedText.includes('banque') || combinedText.includes('bank') || combinedText.includes('bancaire') || combinedText.includes('paiement')) {
+      return {
+        domain: 'AI in European banking sector',
+        keyElements: `banking institution symbols, AI-powered dashboards, € currency symbols, productivity charts ${amounts ? `(${amounts})` : ''}, digital transformation icons, French/EU bank logos`,
+        palette: 'dark blue, elegant grey, white, with gold accents for premium banking',
+        visualSummary: amounts ? `AI revolution in banking, ${amounts} productivity increase, digital transformation` : 'AI adoption in European banks, productivity gains, digital innovation'
+      };
+    }
+    
+    // Regulation / Policy
+    if (combinedText.includes('régulation') || combinedText.includes('loi') || combinedText.includes('politique') || combinedText.includes('regulation')) {
+      return {
+        domain: 'AI regulation and policy',
+        keyElements: 'legal documents symbols, EU flag, République Française emblem, compliance icons, regulatory framework visualization, institutional architecture',
+        palette: 'dark blue, elegant grey, white, with red accents for regulatory importance',
+        visualSummary: amounts ? `new AI regulations with ${amounts} compliance requirements, French/EU institutional framework` : 'AI regulatory framework, French and European policy, compliance requirements'
+      };
+    }
+    
+    // Partnerships
+    if (combinedText.includes('partenariat') || combinedText.includes('collaboration') || combinedText.includes('partner')) {
+      return {
+        domain: 'strategic AI partnerships',
+        keyElements: 'handshake symbol, company logos connection, partnership network, French/EU flags, collaboration icons',
+        palette: 'dark blue, elegant grey, white, with orange accents for collaboration',
+        visualSummary: 'strategic partnerships between French/European companies, AI collaboration, joint innovation'
+      };
+    }
+    
+    // Crypto / Blockchain
+    if (combinedText.includes('crypto') || combinedText.includes('blockchain') || combinedText.includes('bitcoin')) {
+      return {
+        domain: 'cryptocurrency and blockchain AI',
+        keyElements: `blockchain network visualization, crypto symbols (₿, Ξ), digital finance icons, ${amounts ? `market figures (${amounts})` : 'trading charts'}, fintech innovation`,
+        palette: 'dark blue, elegant grey, white, with gold accents for digital assets',
+        visualSummary: amounts ? `crypto market evolution (${amounts}), AI-powered blockchain, digital finance innovation` : 'AI in cryptocurrency, blockchain technology, digital finance transformation'
+      };
+    }
+    
+    // Security / Fraud
+    if (combinedText.includes('fraude') || combinedText.includes('sécurité') || combinedText.includes('cybersécurité')) {
+      return {
+        domain: 'AI cybersecurity and fraud detection',
+        keyElements: `security shield symbols, fraud detection alerts, risk heatmap, AI monitoring dashboard, ${amounts ? `threat reduction (${amounts})` : 'protection icons'}`,
+        palette: 'dark blue, elegant grey, white, with red accents for security alerts',
+        visualSummary: amounts ? `AI fraud detection with ${amounts} efficiency increase, cybersecurity innovation` : 'AI-powered fraud detection, cybersecurity enhancement, risk management'
+      };
+    }
+    
+    // Default: General AI & Business
+    return {
+      domain: 'artificial intelligence and business innovation',
+      keyElements: `AI network symbols, digital transformation icons, French corporate symbols, € currency, ${amounts ? `growth figures (${amounts})` : 'productivity charts'}, innovation metaphors`,
+      palette: 'dark blue, elegant grey, white, with blue accents for technology',
+      visualSummary: amounts ? `AI business transformation with ${amounts} impact, French/European innovation` : 'AI adoption in French business, digital transformation, innovation leadership'
+    };
+  }
+
+  /**
+   * Extract visual concepts from title and summary (LEGACY - kept for compatibility)
    */
   extractVisualConcepts(title, summary) {
     const lowerTitle = title.toLowerCase();
@@ -130,26 +223,13 @@ export class ThumbnailAgent {
   }
 
   /**
-   * Build simplified fallback prompt (less constraints)
+   * Build simplified fallback prompt (Les Échos style, minimal constraints)
    */
   buildSimplifiedPrompt(articleSummary, articleTitle) {
-    const visualDirection = this.extractVisualConcepts(articleTitle, articleSummary);
-    const prof = config.thumbnail?.editorial_profile || {};
-    const aspect = prof.aspect_ratio || '16:9';
+    const { domain, keyElements, palette } = this.extractEditorialConcepts(articleTitle, articleSummary);
+    const aspect = config.thumbnail?.editorial_profile?.aspect_ratio || '16:9';
     
-    return `Documentary editorial photograph, ultra realistic, 8K quality, natural lighting.
-
-TITLE: ${articleTitle}
-
-SCENE: ${visualDirection}
-
-STYLE: authentic photojournalism, realistic, candid expressions, natural imperfections.
-
-COMPOSITION: rule of thirds, shallow depth of field, single frame.
-
-SIGNATURE: Include French or European visual element (flag, newspaper, architecture, branding).
-
-Format: ${aspect}. No collage, no split-screen.`;
+    return `Minimalist editorial illustration, Les Échos style. Subject: ${domain}. Elements: ${keyElements}. Palette: ${palette}. Sober institutional vector style. Format: ${aspect}.`;
   }
 
   /**
