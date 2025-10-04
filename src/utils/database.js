@@ -81,14 +81,19 @@ export async function saveArticle(articleData) {
 
     const articleId = result.rows[0].id;
     
-    // Generate public thumbnail URL (direct link with .png extension)
-    const thumbnailUrl = `${process.env.PUBLIC_URL || 'https://web-production-da83a.up.railway.app'}/images/${slug}.png`;
-    
-    // Update with thumbnail URL
-    await pool.query(
-      'UPDATE articles SET thumbnail_url = $1 WHERE id = $2',
-      [thumbnailUrl, articleId]
-    );
+    // Generate public thumbnail URL only if thumbnail exists
+    let thumbnailUrl = null;
+    if (thumbnailData && thumbnailFilename) {
+      thumbnailUrl = `${process.env.PUBLIC_URL || 'https://web-production-da83a.up.railway.app'}/images/${thumbnailFilename}`;
+      
+      // Update with thumbnail URL
+      await pool.query(
+        'UPDATE articles SET thumbnail_url = $1 WHERE id = $2',
+        [thumbnailUrl, articleId]
+      );
+    } else {
+      logger.warn(`No thumbnail data for article: ${slug}`);
+    }
 
     logger.success(`Article saved to database: ${slug}`);
     
