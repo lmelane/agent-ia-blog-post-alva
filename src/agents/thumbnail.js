@@ -24,7 +24,7 @@ export class ThumbnailAgent {
 
   /**
    * Build thumbnail prompt from article summary and title
-   * Style: Les Échos editorial illustration (minimalist, institutional, vectorial)
+   * Style: Editorial illustration (minimalist, institutional, vectorial)
    */
   buildThumbnailPrompt(articleSummary, articleTitle) {
     // Extract domain, key elements, and visual metaphors
@@ -32,14 +32,22 @@ export class ThumbnailAgent {
 
     const aspect = config.thumbnail?.editorial_profile?.aspect_ratio || '16:9';
 
-    // STRUCTURE: Les Échos editorial style
-    const basePrompt = `Minimalist editorial illustration, *Les Échos* style. Subject: ${domain}. Key elements: ${keyElements}. Article title: "${articleTitle}". Visual summary: ${visualSummary}. Style: sober institutional vector illustration. Palette: ${palette}. Clear professional composition, suitable for economic daily newspaper. Format: ${aspect}. Shot with Loïc MELANE Signature preset.`;
+    // STRUCTURE: Editorial illustration (minimalist, institutional, vectorial)
+    const basePrompt = `Illustration éditoriale minimaliste pour média économique. 
+Sujet : ${domain}. 
+Éléments clés : ${keyElements}. 
+Contexte : ${visualSummary}. 
+Style : illustration vectorielle sobre, institutionnelle, moderne. 
+Palette : ${palette}. 
+Composition : claire, professionnelle, épurée, sans texte, sans logo de journal. 
+Métaphores visuelles : symboles abstraits et graphiques pour représenter le sujet. 
+Format : ${aspect}.`;
 
     return basePrompt;
   }
 
   /**
-   * Extract editorial concepts for Les Échos style illustration
+   * Extract editorial concepts for illustration
    * Returns: { domain, keyElements, palette, visualSummary }
    */
   extractEditorialConcepts(title, summary) {
