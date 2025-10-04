@@ -55,9 +55,9 @@ CREATIVE DIRECTION: capture a decisive moment in context; environmental storytel
 
 LIGHTING & ATMOSPHERE: natural ${timeOfDay} light (soft window light, diffused daylight, practical lamps), warm color temperature (3200-5600K), subtle rim light on subjects, authentic shadows (not harsh), atmospheric haze or dust particles if indoor.
 
-CAMERA TECHNICAL: 35mm lens equivalent, f/2.8 aperture, ISO 400, shutter 1/250s, handheld camera feeling (slight imperfection in framing), natural light sources only. Color grading: subtle documentary tone, neutral contrast, soft film grain (${filmStock} look, Kodak Portra 400 or Fuji Pro 400H aesthetic).
+CAMERA TECHNICAL: Fujifilm GFX100S II, 80mm f/1.7 lens, ultra-sharp editorial photography, ISO 400, shutter 1/250s, handheld camera feeling (slight imperfection in framing), natural light sources only. Color grading: pigment-rich colors, strong lighting contrasts, subtle documentary tone, neutral contrast, soft film grain (${filmStock} look, Kodak Portra 400 or Fuji Pro 400H aesthetic).
 
-DETAILS & TEXTURES: [ultra detailed:1.2], high resolution, [fine film grain], subtle texture, tactile textures with visible details (fabric weave, paper texture, screen pixels, metal reflections, wood grain), realistic materials (matte plastics, brushed metal, glossy screens, paper documents), natural wear and tear on objects, slight motion blur on background elements.
+DETAILS & TEXTURES: [ultra detailed:1.2], high resolution, [fine film grain], subtle texture, tactile textures with visible details (fabric weave, paper texture, screen pixels, metal reflections, wood grain), glossy textures, realistic materials (matte plastics, brushed metal, glossy screens, paper documents), natural wear and tear on objects, slight motion blur on background elements. Hyper-detailed and realistic rendering, lifestyle and fashion-forward aesthetic.
 
 FRAMING: FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid. One cohesive photograph with clear focal point.
 
