@@ -44,13 +44,15 @@ SUBJECT & SCENE: ${visualDirection}
 
 STYLE: authentic photojournalism, candid human expressions, raw realism, unscripted moment, tactile textures, natural imperfections. Avoid CGI, illustration, or cinematic over-stylization.
 
-CREATIVE DIRECTION: capture a decisive moment in context; environmental storytelling; imperfect framing like real reportage; elements in motion; depth and emotion. Include subtle flaws (slight blur in background, film grain, real shadows).
+CREATIVE DIRECTION: capture a decisive moment in context; environmental storytelling with VISIBLE SIGNATURE ELEMENTS (logos, flags, recognizable French/EU branding, equipment labels, newspaper mastheads, architectural landmarks); imperfect framing like real reportage; elements in motion; depth and emotion. Include subtle flaws (slight blur in background, film grain, real shadows).
 
 CAMERA: 35mm lens, f/2.8, ISO 400, shutter 1/250; handheld camera feeling; natural light (window, daylight, lamps). Color grading: subtle documentary tone, neutral contrast, soft film grain (${filmStock} look).
 
 FRAMING: rule of thirds with natural variation; dynamic but not staged; focus on realism. FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid. One cohesive photograph.
 
-LOCATION BIAS: ${locationBias}. Faces: ${facesPolicy}.`;
+LOCATION BIAS: ${locationBias}. Faces: ${facesPolicy}.
+
+CRITICAL: Include at least ONE visible signature element that anchors the image to the specific topic (equipment with labels, French/EU flags, recognizable French architecture/skyline, French newspapers/documents, branded materials, currency symbols, domain names on screens). Avoid generic stock photo look.`;
 
     return basePrompt;
   }
@@ -62,17 +64,27 @@ LOCATION BIAS: ${locationBias}. Faces: ${facesPolicy}.`;
     const lowerTitle = title.toLowerCase();
     const lowerSummary = summary.toLowerCase();
     
+    // Energy / Green / Climate / Infrastructure (SIGNATURE: visible tech/equipment)
+    if (
+      lowerTitle.includes('énergie') || lowerTitle.includes('energie') || lowerTitle.includes('energy') ||
+      lowerTitle.includes('vert') || lowerTitle.includes('green') || lowerTitle.includes('climat') || lowerTitle.includes('climate') ||
+      lowerTitle.includes('renouvelable') || lowerTitle.includes('renewable') || lowerTitle.includes('solaire') || lowerTitle.includes('solar') ||
+      lowerTitle.includes('éolien') || lowerTitle.includes('wind') || lowerTitle.includes('infrastructure')
+    ) {
+      return 'VISUAL SIGNATURE: Engineer in high-vis vest inspecting solar panel array with tablet showing real-time AI analytics; wind turbine technician reviewing predictive maintenance dashboard in control room with visible turbine blades through window; energy analyst pointing at large wall screen displaying France energy grid map with AI optimization overlays; close-up of hands adjusting smart grid controls with visible French utility branding or Tricolore flag detail in background.';
+    }
+    
     // Suggest REAL-LIFE visuals with people and environments
     if (lowerTitle.includes('financement') || lowerTitle.includes('levée') || lowerTitle.includes('investissement') || lowerTitle.includes('funding')) {
-      return 'VISUAL: Venture capital team in modern office discussing a term sheet on a table with printed documents and highlighters; close-up of hands signing an investment agreement; CFO presenting funding figures on a glass wall; founders shaking hands in a real meeting room.';
+      return 'VISUAL SIGNATURE: Venture capital team in modern Parisian office (visible Eiffel Tower or Haussmann architecture through window) discussing term sheet with visible startup logo on presentation; close-up of hands signing investment agreement with French legal watermark; CFO presenting funding figures on glass wall with € symbols and French company names visible.';
     }
     
     if (lowerTitle.includes('partenariat') || lowerTitle.includes('collaboration') || lowerTitle.includes('partner')) {
-      return 'VISUAL: Two executives shaking hands in a conference room, authentic business attire; joint workshop with teams around a whiteboard; people signing a partnership document; mixed team collaboration scene with post-its and laptops.';
+      return 'VISUAL SIGNATURE: Two executives shaking hands in French corporate HQ (visible French flag or EU flag in background); joint workshop with mixed French/international teams around whiteboard showing company logos; signing ceremony with visible partnership agreement header and French legal stamps; collaboration scene with laptops displaying recognizable French tech brands or .fr domains.';
     }
     
     if (lowerTitle.includes('régulation') || lowerTitle.includes('loi') || lowerTitle.includes('politique') || lowerTitle.includes('regulation')) {
-      return 'VISUAL: Regulator or compliance officer reviewing documents in an office; close-up of a gavel on a real desk with legal files; corporate compliance team meeting; courthouse hallway with people in motion.';
+      return 'VISUAL SIGNATURE: French regulator reviewing AI compliance documents with visible "République Française" letterhead or EU flag; close-up of gavel on desk with French legal code books (Code Civil visible spine); compliance team meeting in French ministry building (recognizable French institutional architecture); EU Parliament or French National Assembly corridor with officials walking.';
     }
     
     if (lowerTitle.includes('api') || lowerTitle.includes('plateforme') || lowerTitle.includes('outil') || lowerTitle.includes('platform')) {
@@ -105,8 +117,8 @@ LOCATION BIAS: ${locationBias}. Faces: ${facesPolicy}.`;
       return 'VISUAL: Compliance analyst reviewing suspicious transactions on printed reports with a highlighter; bank agent verifying a customer ID and documents at a service desk; team discussion around a risk heatmap on a whiteboard; close-up of hands comparing ID card and paperwork with a security watermark visible.';
     }
     
-    // Default: REAL-LIFE business context
-    return 'VISUAL: Professionals in a real office or retail environment interacting with financial technology; candid human expressions; authentic workspace details (documents, pens, coffee mugs), natural light, no CGI.';
+    // Default: REAL-LIFE business context with FRENCH/EU signature
+    return 'VISUAL SIGNATURE: Professionals in modern French office (visible Parisian skyline, French corporate branding, or EU flag) interacting with financial technology; candid expressions; authentic workspace with visible French newspapers (Le Monde, Les Échos), French keyboard (AZERTY layout visible), coffee cups with French café branding, documents with € currency symbols or .fr domains on screens.';
   }
 
   /**
