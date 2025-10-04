@@ -39,8 +39,9 @@ Sujet : ${domain}.
 Contexte : ${visualSummary}. 
 Style : illustration vectorielle sobre, institutionnelle, moderne. 
 Palette : ${palette}. 
-Composition : claire, professionnelle, épurée, sans texte, sans logo de journal. 
+Composition : claire, professionnelle, épurée, SANS TEXTE, SANS CHIFFRES, SANS LETTRES, sans logo de journal. 
 Métaphores visuelles : symboles abstraits et graphiques pour représenter le sujet. 
+Éléments interdits : no text, no numbers, no letters, no words, no typography, no Christmas tree, no decorative elements. 
 Format : ${aspect}.`;
 
     return basePrompt;
@@ -58,6 +59,21 @@ Format : ${aspect}.`;
     // Extract amount if present (e.g., "100M€", "1 milliard")
     const amountMatch = summary.match(/(\d+)\s*(million|milliard|M€|M\$|B€|B\$|%)/gi);
     const amounts = amountMatch ? amountMatch.join(', ') : null;
+    
+    // Healthcare / Medical / Health (PRIORITY: check before finance)
+    if (
+      combinedText.includes('santé') || combinedText.includes('sante') || combinedText.includes('health') ||
+      combinedText.includes('médical') || combinedText.includes('medical') || combinedText.includes('hopital') ||
+      combinedText.includes('hospital') || combinedText.includes('diagnostic') || combinedText.includes('patient') ||
+      combinedText.includes('soins') || combinedText.includes('healthcare')
+    ) {
+      return {
+        domain: 'IA dans le secteur de la santé européen',
+        keyElements: `symboles médicaux (croix, stéthoscope, ECG), tableaux de bord IA médicaux, visualisation de données de santé, ${amounts ? `investissement (${amounts})` : 'graphiques de diagnostic'}, icônes de télémédecine, hôpitaux européens`,
+        palette: 'bleu médical, gris élégant, blanc, avec des touches vertes pour la santé et le bien-être',
+        visualSummary: amounts ? `investissement majeur (${amounts}) dans l'IA santé, amélioration des diagnostics et réduction des coûts en Europe` : 'IA révolutionne les diagnostics médicaux, amélioration des soins, innovation santé européenne'
+      };
+    }
     
     // Energy / Green / Climate
     if (
