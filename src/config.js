@@ -33,14 +33,20 @@ export const config = {
     weights: {
       freshness: 20,
       authority: 20,
-      amplitude: 20,
-      impact: 20,
-      actionability: 20,
+      amplitude: 15,
+      impact_financier: 30, // surpondération de l'impact financier
+      actionability: 15,
     },
   },
   
   // Topics (Finance x IA focus)
-  topics: (process.env.topics || 'AI in finance,fintech AI,algorithmic trading,robo-advisors,AI fraud detection,banking AI,insurance AI,wealth management AI')
+  topics: (process.env.topics || [
+    // Finance-focused
+    'AI in finance','fintech AI','algorithmic trading','robo-advisors','AI fraud detection','banking AI','insurance AI','wealth management AI',
+    // Broader AI routed to finance/impact
+    'AI regulation','AI geopolitics','AI public sector','AI policy','AI economy','AI labor market','AI productivity','AI cybersecurity',
+    'AI infrastructure','AI in healthcare','AI in energy','AI and climate','AI and education','AI supply chain','AI governance'
+  ].join(','))
     .split(',')
     .map(t => t.trim()),
 
