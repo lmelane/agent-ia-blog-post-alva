@@ -29,29 +29,61 @@ export class Pipeline {
     logger.info('═'.repeat(60));
 
     try {
-      // Step 1: Scout - Deep Research for hot AI news (≤72h)
-      logger.info('\n📍 STEP 1/4: Scout - Deep Research (≤72h)');
-      logger.info('─'.repeat(60));
-      const scoutResult = await this.scout.run();
+      // Step 1 & 2: Scout + Ranker with retry on duplicates
+      const maxScoutAttempts = 3;
+      let scoutResult = null;
+      let rankerResult = null;
+      let passingTopics = [];
       
-      if (!scoutResult.topics || scoutResult.topics.length === 0) {
-        throw new Error('No topics discovered by scout');
-      }
+      for (let attempt = 1; attempt <= maxScoutAttempts; attempt++) {
+        // Step 1: Scout - Deep Research for hot AI news (≤72h)
+        logger.info(`\n📍 STEP 1/4: Scout - Deep Research (≤72h)${attempt > 1 ? ` [Attempt ${attempt}/${maxScoutAttempts}]` : ''}`);
+        logger.info('─'.repeat(60));
+        scoutResult = await this.scout.run();
+        
+        if (!scoutResult.topics || scoutResult.topics.length === 0) {
+          if (attempt < maxScoutAttempts) {
+            logger.warn('No topics discovered. Retrying...');
+            await new Promise(res => setTimeout(res, 2000));
+            continue;
+          }
+          throw new Error('No topics discovered by scout after retries');
+        }
 
-      // Step 2: Ranker - Score topics (freshness + impact)
-      logger.info('\n📍 STEP 2/4: Ranker - Scoring topics');
-      logger.info('─'.repeat(60));
-      const rankerResult = await this.ranker.run(scoutResult.topics);
-      
-      const passingTopics = rankerResult.rankedTopics.filter(t => t.scoring.passesThreshold);
+        // Step 2: Ranker - Score topics (freshness + impact)
+        logger.info('\n📍 STEP 2/4: Ranker - Scoring topics');
+        logger.info('─'.repeat(60));
+        
+        try {
+          rankerResult = await this.ranker.run(scoutResult.topics);
+          passingTopics = rankerResult.rankedTopics.filter(t => t.scoring.passesThreshold);
+          
+          if (passingTopics.length > 0) {
+            // Success! Found unique topics
+            break;
+          }
+          
+          logger.warn('No topics passed the scoring threshold');
+        } catch (error) {
+          if (error.message.includes('No unique topics found after filtering duplicates')) {
+            if (attempt < maxScoutAttempts) {
+              logger.warn(`All topics are duplicates. Retrying scout (attempt ${attempt + 1}/${maxScoutAttempts})...`);
+              await new Promise(res => setTimeout(res, 2000));
+              continue;
+            }
+            throw new Error('No unique topics found after multiple scout attempts');
+          }
+          throw error;
+        }
+      }
       
       if (passingTopics.length === 0) {
-        logger.warn('No topics passed the scoring threshold');
+        logger.warn('No topics passed the scoring threshold after retries');
         logger.info('Consider using an evergreen fallback topic');
         return {
           success: false,
           message: 'No topics passed threshold',
-          report: rankerResult.report,
+          report: rankerResult?.report,
         };
       }
 
