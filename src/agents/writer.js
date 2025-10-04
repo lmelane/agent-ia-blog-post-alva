@@ -143,7 +143,7 @@ Réponse concise et précise.
 **Call-to-Action:** [Incitation à l'action - ex: "Restez informé des dernières innovations IA en suivant notre newsletter" ou "Découvrez comment cette technologie peut transformer votre entreprise"]
 
 ## Sources
-[Les sources seront ajoutées automatiquement]
+[TOUTES les sources fournies ci-dessus DOIVENT être listées ici dans l'ordre, même si elles ne sont pas citées dans le texte]
 
 ⚠️ RÈGLE TYPOGRAPHIQUE FRANÇAISE IMPORTANTE:
 - Titres H1, H2, H3 : SEULEMENT la première lettre en majuscule
@@ -180,7 +180,7 @@ EXIGENCES CRITIQUES POUR UN ARTICLE PROFESSIONNEL:
 16. Sous-titres H3 optimisés SEO avec mots-clés secondaires
 17. FAQ avec questions SPÉCIFIQUES et détaillées (pas génériques)
 18. Mots-clés naturels: ${topic.keywords?.join(', ') || 'IA, intelligence artificielle, business'}
-19. Citations sources avec [1], [2] dans le texte
+19. Citations sources avec [1], [2] dans le texte - UTILISER TOUTES LES SOURCES DISPONIBLES (pas seulement 1 ou 2)
 
 📰 STYLE LES ÉCHOS - STRUCTURE DÉTAILLÉE (8-14 paragraphes minimum):
 
