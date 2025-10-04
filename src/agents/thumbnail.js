@@ -223,16 +223,6 @@ export class ThumbnailAgent {
   }
 
   /**
-   * Build simplified fallback prompt (Les Échos style, minimal constraints)
-   */
-  buildSimplifiedPrompt(articleSummary, articleTitle) {
-    const { domain, keyElements, palette } = this.extractEditorialConcepts(articleTitle, articleSummary);
-    const aspect = config.thumbnail?.editorial_profile?.aspect_ratio || '16:9';
-    
-    return `Minimalist editorial illustration, Les Échos style. Subject: ${domain}. Elements: ${keyElements}. Palette: ${palette}. Sober institutional vector style. Format: ${aspect}.`;
-  }
-
-  /**
    * Generate thumbnail image using Reve.com
    */
   async generateThumbnail(articleSummary, articleTitle, articleSlug) {
@@ -243,106 +233,58 @@ export class ThumbnailAgent {
 
     logger.info('🎨 Generating thumbnail image with Reve.com...');
 
-    const fullPrompt = this.buildThumbnailPrompt(articleSummary, articleTitle);
-    const simplifiedPrompt = this.buildSimplifiedPrompt(articleSummary, articleTitle);
-    
-    logger.info('Thumbnail prompt (full):', { prompt: fullPrompt.substring(0, 150) + '...' });
+    const prompt = this.buildThumbnailPrompt(articleSummary, articleTitle);
+    logger.info('Thumbnail prompt:', { prompt: prompt.substring(0, 150) + '...' });
 
-    const maxAttempts = 3;
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      // Strategy: full prompt first, then simplified if fails, then minimal
-      const promptToUse = attempt === 1 ? fullPrompt : (attempt === 2 ? simplifiedPrompt : fullPrompt);
-      
-      // First try with aspect_ratio; if 400 unrecognized param, fallback to minimal payload
-      const payloads = [
-        { prompt: promptToUse, aspect_ratio: (config.thumbnail?.editorial_profile?.aspect_ratio || '16:9') },
-        { prompt: promptToUse },
-      ];
-      
-      if (attempt > 1) {
-        logger.info(`Attempt ${attempt}: using ${attempt === 2 ? 'simplified' : 'full'} prompt`);
+    try {
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Reve API error: ${response.status} - ${errorText}`);
       }
 
-      for (let variant = 0; variant < payloads.length; variant++) {
-        const payload = payloads[variant];
-        try {
-          const response = await fetch(this.apiUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': `Bearer ${this.apiKey}`,
-            },
-            body: JSON.stringify(payload),
-          });
+      const data = await response.json();
 
-          if (!response.ok) {
-            const errorText = await response.text();
-            
-            // Content violation: try simplified prompt on next attempt
-            if (response.status === 400 && errorText.includes('content')) {
-              logger.warn(`Content violation detected. Will retry with simplified prompt. Details: ${errorText}`);
-              break; // Go to next attempt with simplified prompt
-            }
-            
-            // If bad request and we used extended payload, try minimal immediately
-            if (response.status === 400 && variant === 0) {
-              logger.warn(`Reve payload with aspect_ratio rejected (400). Falling back to minimal payload. Details: ${errorText}`);
-              continue;
-            }
-            
-            throw new Error(`Reve API error: ${response.status} - ${errorText}`);
-          }
+      logger.info('Reve API response:', {
+        request_id: data.request_id,
+        credits_used: data.credits_used,
+        credits_remaining: data.credits_remaining,
+      });
 
-          const data = await response.json();
-
-          logger.info('Reve API response:', {
-            request_id: data.request_id,
-            credits_used: data.credits_used,
-            credits_remaining: data.credits_remaining,
-          });
-
-          if (data.content_violation) {
-            logger.warn('Content policy violation detected. Retrying with simplified prompt.');
-            break; // Go to next attempt with simplified prompt
-          }
-
-          if (!data.image) {
-            throw new Error('No image data in Reve API response');
-          }
-
-          logger.success('Thumbnail generated successfully');
-          logger.info(`Credits used: ${data.credits_used}, remaining: ${data.credits_remaining}`);
-
-          const filename = await this.saveBase64Image(data.image, articleSlug);
-
-          return {
-            filename: filename,
-            localPath: path.join(this.outputDir, filename),
-            prompt: prompt,
-            generatedAt: new Date().toISOString(),
-            provider: 'reve.com',
-            request_id: data.request_id,
-            credits_used: data.credits_used,
-            credits_remaining: data.credits_remaining,
-          };
-        } catch (error) {
-          logger.warn(`Reve generation attempt ${attempt}/${maxAttempts} variant ${variant + 1} failed: ${error.message}`);
-          // If variant 0 failed with 400, loop continues to variant 1; otherwise go to retry/backoff
-          if (!(variant === 0 && /400/.test(error.message))) {
-            // Only backoff between outer attempts
-            break;
-          }
-        }
+      if (data.content_violation) {
+        throw new Error('Content policy violation detected by Reve.com');
       }
 
-      if (attempt < maxAttempts) {
-        const delayMs = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
-        await new Promise(res => setTimeout(res, delayMs));
-        continue;
+      if (!data.image) {
+        throw new Error('No image data in Reve API response');
       }
 
-      logger.error('Failed to generate thumbnail after retries');
+      logger.success('Thumbnail generated successfully');
+      logger.info(`Credits used: ${data.credits_used}, remaining: ${data.credits_remaining}`);
+
+      const filename = await this.saveBase64Image(data.image, articleSlug);
+
+      return {
+        filename: filename,
+        localPath: path.join(this.outputDir, filename),
+        prompt: prompt,
+        generatedAt: new Date().toISOString(),
+        provider: 'reve.com',
+        request_id: data.request_id,
+        credits_used: data.credits_used,
+        credits_remaining: data.credits_remaining,
+      };
+    } catch (error) {
+      logger.error('Failed to generate thumbnail:', error.message);
       return null;
     }
   }
