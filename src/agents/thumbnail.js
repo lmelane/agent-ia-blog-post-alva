@@ -49,63 +49,84 @@ export class ThumbnailAgent {
    */
   extractVisualConcepts(title, summary) {
     const lowerTitle = title.toLowerCase();
-    const lowerSummary = summary.toLowerCase();
+    const lowerSummary = (summary || '').toLowerCase();
+    
+    // Extract key entities from title and summary for ultra-precise scene
+    const combinedText = `${lowerTitle} ${lowerSummary}`;
     
     // Energy / Green / Climate / Infrastructure (SIGNATURE: visible tech/equipment)
     if (
-      lowerTitle.includes('énergie') || lowerTitle.includes('energie') || lowerTitle.includes('energy') ||
-      lowerTitle.includes('vert') || lowerTitle.includes('green') || lowerTitle.includes('climat') || lowerTitle.includes('climate') ||
-      lowerTitle.includes('renouvelable') || lowerTitle.includes('renewable') || lowerTitle.includes('solaire') || lowerTitle.includes('solar') ||
-      lowerTitle.includes('éolien') || lowerTitle.includes('wind') || lowerTitle.includes('infrastructure')
+      combinedText.includes('énergie') || combinedText.includes('energie') || combinedText.includes('energy') ||
+      combinedText.includes('vert') || combinedText.includes('green') || combinedText.includes('climat') || combinedText.includes('climate') ||
+      combinedText.includes('renouvelable') || combinedText.includes('renewable') || combinedText.includes('solaire') || combinedText.includes('solar') ||
+      combinedText.includes('éolien') || combinedText.includes('wind') || combinedText.includes('infrastructure')
     ) {
-      return 'VISUAL SIGNATURE: Engineer in high-vis vest inspecting solar panel array with tablet showing real-time AI analytics; wind turbine technician reviewing predictive maintenance dashboard in control room with visible turbine blades through window; energy analyst pointing at large wall screen displaying France energy grid map with AI optimization overlays; close-up of hands adjusting smart grid controls with visible French utility branding or Tricolore flag detail in background.';
+      // Detect specific sub-theme from summary
+      if (combinedText.includes('solaire') || combinedText.includes('solar') || combinedText.includes('panneau')) {
+        return 'Engineer in high-vis vest inspecting solar panel array with tablet showing real-time AI analytics, visible French utility branding (EDF, Engie), Tricolore flag on equipment, natural outdoor lighting';
+      }
+      if (combinedText.includes('éolien') || combinedText.includes('wind') || combinedText.includes('turbine')) {
+        return 'Wind turbine technician reviewing predictive maintenance dashboard in control room with visible turbine blades through window, French energy company logo visible, technical equipment with French labels';
+      }
+      if (combinedText.includes('réseau') || combinedText.includes('grid') || combinedText.includes('électrique')) {
+        return 'Energy analyst pointing at large wall screen displaying France energy grid map with AI optimization overlays, control room with French utility branding, technical monitors showing real-time data';
+      }
+      // Default energy scene
+      return 'Engineer in modern French energy facility with visible technical equipment, AI monitoring systems, French utility company branding (EDF, Engie), Tricolore flag or French signage visible';
     }
     
-    // Suggest REAL-LIFE visuals with people and environments
-    if (lowerTitle.includes('financement') || lowerTitle.includes('levée') || lowerTitle.includes('investissement') || lowerTitle.includes('funding')) {
-      return 'VISUAL SIGNATURE: Venture capital team in modern Parisian office (visible Eiffel Tower or Haussmann architecture through window) discussing term sheet with visible startup logo on presentation; close-up of hands signing investment agreement with French legal watermark; CFO presenting funding figures on glass wall with € symbols and French company names visible.';
+    // Financing / Investment / Funding (extract amounts from summary if present)
+    if (combinedText.includes('financement') || combinedText.includes('levée') || combinedText.includes('investissement') || combinedText.includes('funding') || combinedText.includes('million') || combinedText.includes('milliard')) {
+      // Extract amount if present (e.g., "100M€", "1 milliard")
+      const amountMatch = summary.match(/(\d+)\s*(million|milliard|M€|M\$|B€|B\$)/i);
+      const amountText = amountMatch ? `visible ${amountMatch[0]} figure on presentation screen` : 'funding figures on glass wall';
+      return `Venture capital team in modern Parisian office (Eiffel Tower or Haussmann architecture visible through window) discussing investment, ${amountText}, € symbols visible, French startup logo on screen, professional handshake or document signing scene`;
     }
     
-    if (lowerTitle.includes('partenariat') || lowerTitle.includes('collaboration') || lowerTitle.includes('partner')) {
-      return 'VISUAL SIGNATURE: Two executives shaking hands in French corporate HQ (visible French flag or EU flag in background); joint workshop with mixed French/international teams around whiteboard showing company logos; signing ceremony with visible partnership agreement header and French legal stamps; collaboration scene with laptops displaying recognizable French tech brands or .fr domains.';
+    if (combinedText.includes('partenariat') || combinedText.includes('collaboration') || combinedText.includes('partner')) {
+      return 'Two executives shaking hands in French corporate HQ (French flag or EU flag visible in background), partnership agreement document visible, company logos on presentation screen, modern French office setting';
     }
     
-    if (lowerTitle.includes('régulation') || lowerTitle.includes('loi') || lowerTitle.includes('politique') || lowerTitle.includes('regulation')) {
-      return 'VISUAL SIGNATURE: French regulator reviewing AI compliance documents with visible "République Française" letterhead or EU flag; close-up of gavel on desk with French legal code books (Code Civil visible spine); compliance team meeting in French ministry building (recognizable French institutional architecture); EU Parliament or French National Assembly corridor with officials walking.';
+    if (combinedText.includes('régulation') || combinedText.includes('loi') || combinedText.includes('politique') || combinedText.includes('regulation') || combinedText.includes('réglementation')) {
+      return 'French regulator or compliance officer reviewing documents with visible "République Française" letterhead or EU flag, legal code books on desk, French institutional setting, official reviewing AI compliance paperwork';
     }
     
-    if (lowerTitle.includes('api') || lowerTitle.includes('plateforme') || lowerTitle.includes('outil') || lowerTitle.includes('platform')) {
-      return 'VISUAL: Engineer presenting an API dashboard on a laptop in a meeting; developer pair-programming in a modern workspace; product manager pointing at an architecture diagram on a whiteboard; server room corridor with real hardware and a technician walking by.';
+    if (combinedText.includes('api') || combinedText.includes('plateforme') || combinedText.includes('outil') || combinedText.includes('platform')) {
+      return 'Engineer presenting API dashboard on laptop in French tech company, visible .fr domain on screen, modern workspace with French tech branding, developer reviewing code or architecture diagram';
     }
     
-    if (lowerTitle.includes('gpt') || lowerTitle.includes('llm') || lowerTitle.includes('modèle') || lowerTitle.includes('model') || lowerTitle.includes('openai')) {
-      return 'VISUAL: Data scientist explaining model outputs to a colleague on paper printouts; UX researcher observing a user interacting with an AI assistant on a smartphone; team reviewing prompt examples around a real table; call center agent using an AI tool with headset.';
+    if (combinedText.includes('gpt') || combinedText.includes('llm') || combinedText.includes('modèle') || combinedText.includes('model') || combinedText.includes('openai') || combinedText.includes('intelligence artificielle')) {
+      return 'Data scientist or AI researcher in French tech company explaining model outputs to colleague, visible AI dashboard or ChatGPT interface on screen, French tech office setting, professional discussing AI technology';
     }
     
-    if (lowerTitle.includes('automatisation') || lowerTitle.includes('automation')) {
-      return 'VISUAL: Operator supervising an automated conveyor belt in a real factory; close-up of worker hands controlling a robotic arm panel; warehouse associate scanning packages with handheld device; manufacturing line with staff in PPE.';
+    if (combinedText.includes('automatisation') || combinedText.includes('automation') || combinedText.includes('robotique')) {
+      return 'Operator supervising automated system in French factory or warehouse, visible French industrial branding, worker controlling robotic equipment panel, manufacturing or logistics setting with French signage';
     }
     
-    if (lowerTitle.includes('trading') || lowerTitle.includes('bourse') || lowerTitle.includes('stock')) {
-      return 'VISUAL: Traders in a real trading floor monitoring multiple screens; close-up of a hand placing an order on a mechanical keyboard; portfolio manager discussing charts with a colleague; finance team debrief around a real-world dashboard printout.';
+    if (combinedText.includes('trading') || combinedText.includes('bourse') || combinedText.includes('stock') || combinedText.includes('marché') || combinedText.includes('investissement')) {
+      return 'Traders or portfolio managers in French financial institution monitoring multiple screens with market data, visible € currency symbols, French bank or trading floor setting, professional analyzing financial charts';
     }
     
-    if (lowerTitle.includes('crypto') || lowerTitle.includes('blockchain') || lowerTitle.includes('bitcoin')) {
-      return 'VISUAL: Person scanning a QR code to pay with crypto at a café; hardware wallet on a real desk next to a laptop; meetup group discussing blockchain in a co-working space; crypto ATM with a user interacting.';
+    if (combinedText.includes('crypto') || combinedText.includes('blockchain') || combinedText.includes('bitcoin') || combinedText.includes('ethereum')) {
+      return 'Professional in French fintech office reviewing cryptocurrency dashboard on screen, visible crypto charts or blockchain interface, modern workspace with French tech branding, digital finance setting';
     }
 
     // Fraud / Security / Compliance (KYC/AML)
     if (
-      lowerTitle.includes('fraude') || lowerTitle.includes('sécurité') || lowerTitle.includes('securite') ||
-      lowerTitle.includes('aml') || lowerTitle.includes('kyc') || lowerTitle.includes('compliance') ||
-      lowerSummary.includes('fraude') || lowerSummary.includes('sécurité') || lowerSummary.includes('securite') ||
-      lowerSummary.includes('aml') || lowerSummary.includes('kyc') || lowerSummary.includes('conformité') || lowerSummary.includes('compliance')
+      combinedText.includes('fraude') || combinedText.includes('sécurité') || combinedText.includes('securite') ||
+      combinedText.includes('aml') || combinedText.includes('kyc') || combinedText.includes('compliance') ||
+      combinedText.includes('conformité') || combinedText.includes('cybersécurité')
     ) {
-      return 'VISUAL: Compliance analyst reviewing suspicious transactions on printed reports with a highlighter; bank agent verifying a customer ID and documents at a service desk; team discussion around a risk heatmap on a whiteboard; close-up of hands comparing ID card and paperwork with a security watermark visible.';
+      return 'Compliance analyst or security officer in French bank reviewing fraud detection dashboard, visible risk heatmap or security alerts on screen, professional verifying documents or ID, French banking institution setting';
+    }
+    
+    // Banking / Finance (detect from summary context)
+    if (combinedText.includes('banque') || combinedText.includes('bank') || combinedText.includes('bancaire') || combinedText.includes('paiement')) {
+      return 'Bank employee or financial professional in French banking institution using AI-powered dashboard, visible French bank branding (BNP Paribas, Société Générale, Crédit Agricole), € symbols on screens, modern banking office setting';
     }
     
     // Default: REAL-LIFE business context with FRENCH/EU signature
-    return 'VISUAL SIGNATURE: Professionals in modern French office (visible Parisian skyline, French corporate branding, or EU flag) interacting with financial technology; candid expressions; authentic workspace with visible French newspapers (Le Monde, Les Échos), French keyboard (AZERTY layout visible), coffee cups with French café branding, documents with € currency symbols or .fr domains on screens.';
+    return 'Business professionals in modern French office (Parisian skyline or Haussmann architecture visible), interacting with technology, French corporate branding visible, Les Échos or Le Monde newspaper on desk, € symbols or .fr domains on screens, AZERTY keyboard visible';
   }
 
   /**
