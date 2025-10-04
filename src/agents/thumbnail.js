@@ -37,20 +37,9 @@ export class ThumbnailAgent {
     const aspect = prof.aspect_ratio || '16:9';
 
     // FRONT-LOADING: Style keywords first for maximum weight
-    const basePrompt = `[Documentary editorial photograph] [ultra realistic] [8K quality] [authentic photojournalism]
-
-TITLE: ${articleTitle}
-SCENE: ${visualDirection}
-
-STYLE: [realistic:1.3] Fujifilm GFX100S II, 80mm f/1.7, ultra-sharp editorial photography, pigment-rich colors, strong lighting contrasts, [tactile textures:1.2] (fabric weave, paper grain, metal reflections, glossy textures), natural imperfections (slight motion blur, film grain, authentic shadows), hyper-detailed rendering, lifestyle aesthetic.
-
-COMPOSITION: Eye-level shot, mid-shot or close-up, shallow depth of field (f/1.7), rule of thirds, foreground sharp with soft bokeh background, natural ${timeOfDay} light (3200-5600K), handheld feeling. Single coherent frame, no collage, no split-screen.
-
-SIGNATURE ELEMENTS (at least ONE visible): [French flag Tricolore] OR [EU flag stars] OR [French newspaper "Les Échos"/"Le Monde" masthead] OR [.fr domain on screen] OR [€ symbol on documents] OR [French company logo: EDF/Orange/BNP] OR [AZERTY keyboard] OR [French landmark: Eiffel/Haussmann/La Défense] OR [French signage/packaging].
-
-NEGATIVE: no illustrations, no CGI, no collage, no split-screen, no diptych, no multiple panels, no grid, no surreal elements, no stock photo aesthetic.
-
-DIRECTIVE: Authentic French/European documentary editorial style, realistic, grounded, recognizable French context.`;
+    // Target: 400-500 chars (50-120 words) for optimal Reve API performance
+    // Structure: Scene description + Technical style + Loïc MELANE Signature + Directive
+    const basePrompt = `Editorial documentary photograph: ${visualDirection}, natural ${timeOfDay} light casting authentic shadows, pigment-rich colors, ultra-sharp details, glossy textures, strong contrasts. French/EU signature element visible (Tricolore flag, EU stars, Les Échos/Le Monde newspaper, .fr domain, € symbol, French logo, AZERTY keyboard, or Eiffel/Haussmann architecture). Shot with Loïc MELANE Signature preset, Fujifilm GFX100S II, 80mm f/1.7, cinematic editorial style.`;
 
     return basePrompt;
   }
