@@ -75,6 +75,16 @@ Format : ${aspect}.`;
       };
     }
     
+    // Banking / Finance (PRIORITY: check before generic financing)
+    if (combinedText.includes('banque') || combinedText.includes('bank') || combinedText.includes('bancaire') || combinedText.includes('paiement')) {
+      return {
+        domain: 'AI in European banking sector',
+        keyElements: `banking institution symbols, AI-powered dashboards, € currency symbols, productivity charts ${amounts ? `(${amounts})` : ''}, digital transformation icons, French/EU bank logos`,
+        palette: 'dark blue, elegant grey, white, with gold accents for premium banking',
+        visualSummary: amounts ? `AI revolution in banking, ${amounts} productivity increase, digital transformation` : 'AI adoption in European banks, productivity gains, digital innovation'
+      };
+    }
+    
     // Energy / Green / Climate
     if (
       combinedText.includes('énergie') || combinedText.includes('energie') || combinedText.includes('energy') ||
@@ -89,7 +99,7 @@ Format : ${aspect}.`;
       };
     }
     
-    // Financing / Investment / Funding
+    // Financing / Investment / Funding (generic - check after specific sectors)
     if (
       combinedText.includes('financement') || combinedText.includes('levée') || combinedText.includes('investissement') ||
       combinedText.includes('funding') || combinedText.includes('million') || combinedText.includes('milliard')
@@ -99,16 +109,6 @@ Format : ${aspect}.`;
         keyElements: `dynamic stock market charts, digital data flows, symbolic algorithms, ${amounts ? `funding symbol (${amounts})` : 'investment rounds'}, investors (Sequoia Capital, venture capital)`,
         palette: 'dark blue, elegant grey, white, with green touches for growth',
         visualSummary: amounts ? `major funding round (${amounts}) to propel AI, growth and European expansion` : 'AI-powered fintech growth, algorithmic trading innovation'
-      };
-    }
-    
-    // Banking / Finance
-    if (combinedText.includes('banque') || combinedText.includes('bank') || combinedText.includes('bancaire') || combinedText.includes('paiement')) {
-      return {
-        domain: 'AI in European banking sector',
-        keyElements: `banking institution symbols, AI-powered dashboards, € currency symbols, productivity charts ${amounts ? `(${amounts})` : ''}, digital transformation icons, French/EU bank logos`,
-        palette: 'dark blue, elegant grey, white, with gold accents for premium banking',
-        visualSummary: amounts ? `AI revolution in banking, ${amounts} productivity increase, digital transformation` : 'AI adoption in European banks, productivity gains, digital innovation'
       };
     }
     
