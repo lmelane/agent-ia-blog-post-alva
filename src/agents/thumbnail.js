@@ -39,44 +39,18 @@ export class ThumbnailAgent {
     // FRONT-LOADING: Style keywords first for maximum weight
     const basePrompt = `[Documentary editorial photograph] [ultra realistic] [8K quality] [authentic photojournalism]
 
-STYLE PRIORITY: realistic documentary, no illustrations, no CGI, no collage, no split-screen, no surreal elements, no artistic stylization.
+TITLE: ${articleTitle}
+SCENE: ${visualDirection}
 
-TITLE CONTEXT: ${articleTitle}
+STYLE: [realistic:1.3] Fujifilm GFX100S II, 80mm f/1.7, ultra-sharp editorial photography, pigment-rich colors, strong lighting contrasts, [tactile textures:1.2] (fabric weave, paper grain, metal reflections, glossy textures), natural imperfections (slight motion blur, film grain, authentic shadows), hyper-detailed rendering, lifestyle aesthetic.
 
-SUBJECT & SCENE: ${visualDirection}
+COMPOSITION: Eye-level shot, mid-shot or close-up, shallow depth of field (f/1.7), rule of thirds, foreground sharp with soft bokeh background, natural ${timeOfDay} light (3200-5600K), handheld feeling. Single coherent frame, no collage, no split-screen.
 
-STYLE: [realistic:1.3] authentic photojournalism style, candid human expressions, raw realism, unscripted moment, [tactile textures:1.2] (fabric weave visible, paper grain, metal reflections), natural imperfections (slight motion blur, authentic shadows, real depth of field, visible skin pores if faces present).
+SIGNATURE ELEMENTS (at least ONE visible): [French flag Tricolore] OR [EU flag stars] OR [French newspaper "Les Échos"/"Le Monde" masthead] OR [.fr domain on screen] OR [€ symbol on documents] OR [French company logo: EDF/Orange/BNP] OR [AZERTY keyboard] OR [French landmark: Eiffel/Haussmann/La Défense] OR [French signage/packaging].
 
-NEGATIVE PROMPTS: no illustrations, no collage, no split-screen, no diptych, no multiple panels, no grid, no surreal elements, no repeated patterns, no extra limbs, no CGI look, no overly artistic composition, no stock photo aesthetic.
+NEGATIVE: no illustrations, no CGI, no collage, no split-screen, no diptych, no multiple panels, no grid, no surreal elements, no stock photo aesthetic.
 
-COMPOSITION: shot from eye-level with slight tilt, mid-shot or close-up, shallow depth of field (f/2.8), foreground sharp with soft bokeh background, rule of thirds (subject on left or right third), leading lines toward subject, slight foreground element for depth, environmental context visible but blurred. Full frame, no cropping, preserve full scene, single coherent frame.
-
-CREATIVE DIRECTION: capture a decisive moment in context; environmental storytelling with VISIBLE SIGNATURE ELEMENTS (logos, flags, recognizable French/EU branding, equipment labels, newspaper mastheads, architectural landmarks); imperfect framing like real reportage; elements in motion; depth and emotion. Include subtle flaws (slight blur in background, film grain, real shadows, natural lens flare).
-
-LIGHTING & ATMOSPHERE: natural ${timeOfDay} light (soft window light, diffused daylight, practical lamps), warm color temperature (3200-5600K), subtle rim light on subjects, authentic shadows (not harsh), atmospheric haze or dust particles if indoor.
-
-CAMERA TECHNICAL: Fujifilm GFX100S II, 80mm f/1.7 lens, ultra-sharp editorial photography, ISO 400, shutter 1/250s, handheld camera feeling (slight imperfection in framing), natural light sources only. Color grading: pigment-rich colors, strong lighting contrasts, subtle documentary tone, neutral contrast, soft film grain (${filmStock} look, Kodak Portra 400 or Fuji Pro 400H aesthetic).
-
-DETAILS & TEXTURES: [ultra detailed:1.2], high resolution, [fine film grain], subtle texture, tactile textures with visible details (fabric weave, paper texture, screen pixels, metal reflections, wood grain), glossy textures, realistic materials (matte plastics, brushed metal, glossy screens, paper documents), natural wear and tear on objects, slight motion blur on background elements. Hyper-detailed and realistic rendering, lifestyle and fashion-forward aesthetic.
-
-FRAMING: FULL SINGLE FRAME ONLY — no collage, no split-screen, no diptych, no multiple panels, no grid. One cohesive photograph with clear focal point.
-
-LOCATION BIAS: ${locationBias}. Faces: ${facesPolicy}.
-
-CRITICAL SIGNATURE ELEMENTS (at least ONE clearly visible):
-- [French flag Tricolore on wall or desk]
-- [EU flag with stars visible]
-- [French newspaper "Les Échos" or "Le Monde" printed masthead]
-- [.fr domain visible on computer screen]
-- [€ currency symbol on documents or screens]
-- [French company logo (EDF, Orange, BNP Paribas, etc.)]
-- [AZERTY keyboard layout visible]
-- [French architectural landmark (Eiffel Tower silhouette, Haussmann building, La Défense tower)]
-- [French signage or product packaging with French text]
-
-ANCHORING: These elements must be simple, clear, concrete, recognizable. Place them naturally in scene (on wall, desk, screen, background).
-
-FINAL DIRECTIVE: Authentic French/European documentary editorial style. No generic stock photo look. Realistic, grounded, recognizable French context.`;
+DIRECTIVE: Authentic French/European documentary editorial style, realistic, grounded, recognizable French context.`;
 
     return basePrompt;
   }
