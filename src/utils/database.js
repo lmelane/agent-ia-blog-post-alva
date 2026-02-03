@@ -12,19 +12,13 @@ const pool = new Pool({
 });
 
 /**
- * Initialize database tables
+ * Initialize database tables (preserves existing data)
  */
 export async function initDatabase() {
   try {
-    // 0. Cleanup (Optional: Remove if you want to preserve data)
-    // "Il faut l'initialité de A à Z du coup" -> We reset schema
-    logger.info('⚠️ Resetting database schema (DROP TABLES)...');
-    await pool.query('DROP TABLE IF EXISTS articles CASCADE');
-    await pool.query('DROP TABLE IF EXISTS categories CASCADE');
-
-    // 1. Table Categories
+    // 1. Table Categories (IF NOT EXISTS - preserves data)
     await pool.query(`
-      CREATE TABLE categories (
+      CREATE TABLE IF NOT EXISTS categories (
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) UNIQUE NOT NULL,
         slug VARCHAR(100) UNIQUE NOT NULL,
@@ -33,9 +27,9 @@ export async function initDatabase() {
       );
     `);
 
-    // 2. Table Articles
+    // 2. Table Articles (IF NOT EXISTS - preserves data)
     await pool.query(`
-      CREATE TABLE articles (
+      CREATE TABLE IF NOT EXISTS articles (
         id SERIAL PRIMARY KEY,
         title VARCHAR(500) NOT NULL,
         slug VARCHAR(500) UNIQUE NOT NULL,
@@ -48,11 +42,12 @@ export async function initDatabase() {
         published_at TIMESTAMP,
         metadata JSONB
       );
-      
-      CREATE INDEX idx_articles_slug ON articles(slug);
-      CREATE INDEX idx_articles_category ON articles(category_id);
-      CREATE INDEX idx_articles_created_at ON articles(created_at DESC);
     `);
+    
+    // Create indexes if they don't exist
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_articles_slug ON articles(slug);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC);`);
 
     // 3. Seed Categories
     logger.info('Seeding categories...');
