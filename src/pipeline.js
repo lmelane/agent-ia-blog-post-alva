@@ -101,18 +101,23 @@ export class Pipeline {
       logger.info('─'.repeat(60));
       const writerResult = await this.writer.run(enrichedTopic);
 
-      // Step 5: Thumbnail - Generate article thumbnail
+      // Step 5: Thumbnail - Generate article thumbnail (optional - continues if fails)
       logger.info('\n📍 STEP 5/6: Thumbnail - Generating article image');
       logger.info('─'.repeat(60));
-      const thumbnailResult = await this.thumbnail.run(
-        writerResult.article,
-        writerResult.frontMatter
-      );
+      let thumbnailResult = null;
+      try {
+        thumbnailResult = await this.thumbnail.run(
+          writerResult.article,
+          writerResult.frontMatter
+        );
 
-      // Add thumbnail to front-matter if generated
-      if (thumbnailResult.success && thumbnailResult.thumbnail) {
-        writerResult.frontMatter.thumbnail = thumbnailResult.thumbnail;
-        logger.success(`Thumbnail generated: ${thumbnailResult.thumbnail.filename}`);
+        // Add thumbnail to front-matter if generated
+        if (thumbnailResult?.success && thumbnailResult?.thumbnail) {
+          writerResult.frontMatter.thumbnail = thumbnailResult.thumbnail;
+          logger.success(`Thumbnail generated: ${thumbnailResult.thumbnail.filename}`);
+        }
+      } catch (thumbError) {
+        logger.warn(`Thumbnail generation failed (continuing without image): ${thumbError.message}`);
       }
 
       // Step 6: Publisher (optional)
