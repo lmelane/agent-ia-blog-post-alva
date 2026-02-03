@@ -13,7 +13,7 @@ const program = new Command();
 
 program
   .name('ai-article-agent')
-  .description('CLI for AI Article Agent - Generate articles with OpenAI Deep Research')
+  .description('CLI for AI Article Agent - Generate articles with Perplexity & Gemini')
   .version('1.0.0');
 
 // Scout command
@@ -77,6 +77,9 @@ program
       console.log(`📄 File: ${result.filename}`);
       console.log(`📊 Word count: ${result.validation.stats.wordCount}`);
       console.log(`📍 Path: ${result.filePath}`);
+      if (result.frontMatter.social_post) {
+        console.log(`📱 Social Post: Generated (stored in metadata)`);
+      }
       
       if (result.validation.issues.length > 0) {
         console.log('\n⚠️  Validation issues:');

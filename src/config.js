@@ -8,17 +8,22 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 export const config = {
-  // OpenAI Configuration
-  openai: {
-    apiKey: process.env.OPENAI_API_KEY,
-    deepResearchModel: process.env.DEEP_RESEARCH_MODEL || 'o4-mini-deep-research',
-    standardModel: process.env.STANDARD_MODEL || 'gpt-4o',
+  // Perplexity Configuration (for search/research)
+  perplexity: {
+    apiKey: process.env.PERPLEXITY_API_KEY,
+    model: process.env.PERPLEXITY_MODEL || 'sonar-pro',
+  },
+
+  // Gemini Configuration (for writing)
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY,
+    model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
   },
 
   // Scheduling
   schedule: {
     timezone: process.env.TZ || 'Europe/Paris',
-    cronExpression: '0 9 * * *', // 09:00 every day
+    cronExpression: '30 8 * * *', // 08:30 every day
   },
 
   // Output
@@ -39,27 +44,30 @@ export const config = {
     },
   },
   
-  // Topics (Finance x IA focus)
+  // Topics (Beauchoix Agency Focus: MVP, SaaS, AI, Startup)
   topics: (process.env.topics || [
-    // Finance-focused
-    'AI in finance','fintech AI','algorithmic trading','robo-advisors','AI fraud detection','banking AI','insurance AI','wealth management AI',
-    // Broader AI routed to finance/impact
-    'AI regulation','AI geopolitics','AI public sector','AI policy','AI economy','AI labor market','AI productivity','AI cybersecurity',
-    'AI infrastructure','AI in healthcare','AI in energy','AI and climate','AI and education','AI supply chain','AI governance'
+    // MVP & Product Launch
+    'MVP development','startup MVP','product market fit','lean startup','rapid prototyping','app launch strategy','time to market',
+    // SaaS & Web Dev
+    'SaaS trends','web app development','no-code vs code','scalable architecture','tech debt','SaaS pricing models','micro-SaaS',
+    // AI & Automation (Business focused)
+    'AI agents for business','business automation','AI workflow optimization','generative AI for startups','LLM integration',
+    // Entrepreneurship & Growth
+    'startup growth strategies','bootstrapping','solopreneurship','digital transformation','founder mistakes'
   ].join(','))
     .split(',')
     .map(t => t.trim()),
 
-  // Categories for topic classification (8 catégories Finance x IA)
+  // Categories for topic classification (Adapted for Beauchoix)
   categories: [
-    'Trading & Investissement',     // Trading algorithmique, robo-advisors, gestion de portefeuille IA
-    'Banque & Paiements',           // Néobanques IA, paiements intelligents, crédit scoring IA
-    'Assurance & Risques',          // Assurtech, évaluation risques, tarification dynamique IA
-    'Détection Fraude & Sécurité',  // Anti-fraude IA, cybersécurité financière, AML/KYC
-    'Fintech & Innovation',         // Startups fintech IA, levées de fonds, nouveaux produits
-    'Régulation & Compliance',      // Régulations financières IA, RegTech, conformité
-    'Analyse & Prévisions',         // Analyse prédictive, market intelligence, forecasting IA
-    'Crypto & DeFi'                 // Finance décentralisée IA, blockchain + IA, crypto trading
+    'Lancement & MVP',            // Stratégies de lancement, Time-to-market, Validation
+    'SaaS & Tech',                // Développement, Architecture, Outils, Stack
+    'IA & Automatisation',        // Agents IA, Productivité, Workflows
+    'Entrepreneuriat & Growth',   // Croissance, Marketing produit, Stratégie
+    'Design & UX',                // Expérience utilisateur, UI, Conversion
+    'Business & Stratégie',       // Modèles économiques, Pricing, Levée vs Bootstrap
+    'No-Code & Low-Code',         // Outils, Rapidité, Limites
+    'Cas Clients & Success'       // Études de cas, Retours d'expérience
   ],
 
   // Article structure (style Les Échos - articles riches)
@@ -72,11 +80,9 @@ export const config = {
     includeCTA: true,
   },
 
-  // CMS (optional)
+  // CMS (Database only)
   cms: {
-    type: process.env.CMS_TYPE || null,
-    apiUrl: process.env.CMS_API_URL || null,
-    apiKey: process.env.CMS_API_KEY || null,
+    // No external CMS configuration needed as we use internal Database
   },
 
   // Deep Research Configuration

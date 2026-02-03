@@ -1,42 +1,18 @@
 import express from 'express';
-import { getThumbnailBySlug } from '../utils/database.js';
+import path from 'path';
+import fs from 'fs';
 import logger from '../utils/logger.js';
+import config from '../config.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Endpoint pour servir les thumbnails avec extension .png
-app.get('/images/:filename', async (req, res) => {
-  try {
-    const { filename } = req.params;
-    
-    // Extract slug from filename (remove date prefix and .png extension)
-    // Example: 2025-10-04-comment-lia-transforme.png -> comment-lia-transforme
-    const slug = filename
-      .replace(/^\d{4}-\d{2}-\d{2}-/, '') // Remove date prefix
-      .replace(/\.png$/, '');              // Remove .png extension
-    
-    const thumbnail = await getThumbnailBySlug(slug);
-    
-    if (!thumbnail) {
-      logger.warn(`Thumbnail not found for slug: ${slug} (filename: ${filename})`);
-      return res.status(404).send('Thumbnail not found');
-    }
-    
-    res.set('Content-Type', 'image/png');
-    res.set('Cache-Control', 'public, max-age=31536000');
-    res.set('Content-Disposition', `inline; filename="${filename}"`);
-    res.send(thumbnail.data);
-  } catch (error) {
-    logger.error('Error serving thumbnail', error);
-    res.status(500).send('Internal server error');
-  }
-});
+// Configuration du dossier de stockage des images
+const storagePath = process.env.IMAGES_STORAGE_PATH || path.join(process.cwd(), 'public', 'images');
 
-// Legacy endpoint (redirect to new format)
-app.get('/api/thumbnail/:slug', (req, res) => {
-  res.redirect(301, `/images/${req.params.slug}.png`);
-});
+// Servir les fichiers statiques (images)
+// L'URL sera /images/filename.png
+app.use('/images', express.static(storagePath));
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -54,8 +30,15 @@ app.get('/api/articles', async (req, res) => {
 });
 
 export function startServer() {
+  // Ensure storage directory exists
+  if (!fs.existsSync(storagePath)) {
+    fs.mkdirSync(storagePath, { recursive: true });
+    logger.info(`Created storage directory: ${storagePath}`);
+  }
+  
   app.listen(PORT, () => {
     logger.success(`🚀 API Server running on port ${PORT}`);
+    logger.info(`📁 Serving images from: ${storagePath}`);
   });
 }
 

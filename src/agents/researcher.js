@@ -1,4 +1,5 @@
-import { deepResearch, completeJSON } from '../utils/openai-client.js';
+import { perplexitySearch } from '../utils/perplexity-client.js';
+import { geminiCompleteJSON } from '../utils/gemini-client.js';
 import logger from '../utils/logger.js';
 
 /**
@@ -12,246 +13,75 @@ export class ResearcherAgent {
    * Build research prompt for deep investigation of selected topic
    */
   buildResearchPrompt(topic) {
-    return `Tu es un journaliste d'investigation Finance x IA qui prépare un article GRAND PUBLIC ultra-pédagogique et accrocheur.
+    return `Tu es un journaliste Tech expert qui prépare un tutoriel/analyse approfondie pour Beauchoix.fr.
+Sujet : "${topic.titre}"
 
-📁 SUJET SÉLECTIONNÉ:
-Titre: ${topic.titre}
-Résumé initial: ${topic.resume}
-Impact: ${topic.impact}
-Catégorie: ${topic.categorie}
+OBJECTIF : Créer un dossier pour un article "Hands-on", "Vécu", "Tutoriel" et non une simple news.
+On veut du CONCRET : Comment ça marche ? Quels sont les pièges ? Que disent les vrais utilisateurs ?
 
-Sources initiales (${topic.sources?.length || 0}):
-${topic.sources?.map((s, i) => `[${i+1}] ${s.titre}: ${s.url}`).join('\n') || 'Aucune'}
+🔍 RECHERCHE SPÉCIFIQUE À MENER :
+1. TUTORIELS & DOCS : Cherche la documentation officielle, des guides "Getting Started", des vidéos YouTube explicatives.
+2. AVIS COMMUNAUTAIRES (Reddit, X, Hacker News) : Cherche ce que les devs/fondateurs en disent VRAIMENT. Pas le marketing, mais la réalité (bugs, pricing caché, DX).
+3. ALTERNATIVES : Quels sont les vrais concurrents ? Pourquoi choisir celui-ci ?
+4. CAS D'USAGE : Qui l'utilise en prod ? Pour faire quoi ?
 
-🎯 MISSION CRITIQUE:
-Compiler un dossier éditorial ULTRA-COMPLET pour un article destiné à des DÉCIDEURS NON-TECHNIQUES.
-Le Writer doit pouvoir rédiger un article de 1200-1500 mots qui :
-- VULGARISE sans simplifier à l'excès
-- ACCROCHE et maintient l'attention
-- VEND l'opportunité business
-- INSPIRE et donne envie d'agir
-- Montre qu'on a fait des RECHERCHES APPROFONDIES
-
-🔍 RECHERCHES À EFFECTUER:
-
-1. SOURCES COMPLÉMENTAIRES (10-15 sources minimum):
-   - Médias financiers: Bloomberg, Reuters, Financial Times, Les Échos, WSJ
-   - Rapports officiels: communiqués de presse, rapports annuels, études sectorielles
-   - Analyses d'experts: cabinets conseil, analystes financiers, think tanks
-   - Sources techniques: blogs spécialisés, documentation technique, whitepapers
-   - Réseaux sociaux: LinkedIn, Twitter/X (déclarations de dirigeants)
-
-2. DONNÉES CHIFFRÉES (maximum de chiffres):
-   - Montants financiers: investissements, levées de fonds, valorisations, CA, bénéfices
-   - Pourcentages: croissance, parts de marché, taux d'adoption, ROI
-   - Prévisions: projections marché, estimations croissance, tendances futures
-   - Statistiques sectorielles: taille du marché, nombre d'utilisateurs, volumes
-   - Comparaisons temporelles: évolution sur 1 an, 5 ans, 10 ans
-
-3. CITATIONS & TÉMOIGNAGES INSPIRANTS (5-10 minimum):
-   - PDG, dirigeants : leurs VISIONS, leurs CONVICTIONS
-   - Success stories : "Comment X a transformé son business grâce à..."
-   - Témoignages clients : résultats concrets, ROI mesurable
-   - Experts qui VULGARISENT : analogies, métaphores accessibles
-   - Phrases PERCUTANTES qui donnent envie de citer
-   Format: "Citation inspirante et accessible" - Prénom Nom, Fonction simple, Entreprise
-
-4. CONTEXTE HISTORIQUE DÉTAILLÉ:
-   - Timeline des événements clés (5-10 ans en arrière)
-   - Précédents similaires dans le secteur
-   - Évolution de la technologie/réglementation/marché
-   - Moments charnières qui ont mené à cette actualité
-
-5. COMPARAISONS INTERNATIONALES:
-   - Situation dans d'autres pays (USA, Chine, Europe, etc.)
-   - Différences réglementaires, culturelles, économiques
-   - Leaders mondiaux vs acteurs locaux
-   - Benchmarks sectoriels
-
-6. ANALYSE CONCURRENTIELLE:
-   - Principaux concurrents et leur positionnement
-   - Parts de marché respectives
-   - Stratégies différenciantes
-   - Avantages/inconvénients de chaque acteur
-
-7. ENJEUX & CONTROVERSES:
-   - Défis techniques, économiques, réglementaires
-   - Critiques et oppositions
-   - Risques identifiés
-   - Points de débat dans l'industrie
-   - Limites de la solution/technologie
-
-8. ANALOGIES & MÉTAPHORES PUISSANTES:
-   - Comparaisons avec la vie quotidienne ("C'est comme si...")
-   - Métaphores visuelles et mémorables
-   - Exemples concrets que tout le monde comprend
-   - Vulgarisation sans infantiliser
-
-9. SUCCESS STORIES INSPIRANTES:
-   - Entreprises qui ont TRANSFORMÉ leur business
-   - Résultats CONCRETS et MESURABLES (ROI, économies, croissance)
-   - Témoignages de dirigeants enthousiastes
-   - "Avant/Après" spectaculaires
-   - Échecs instructifs (ce qu'il ne faut PAS faire)
-
-10. OPPORTUNITÉS BUSINESS CONCRÈTES:
-    - Comment les lecteurs peuvent EN PROFITER
-    - Actions concrètes à entreprendre
-    - Investissements à considérer
-    - Tendances à suivre
-    - "Et vous, qu'allez-vous faire ?"
-
-11. ANGLE ÉDITORIAL VENDEUR:
-    - Hook principal : pourquoi c'est EXCITANT
-    - Ce qui rend cette actu UNIQUE et IMPORTANTE
-    - L'opportunité à NE PAS MANQUER
-    - Le message inspirant à retenir
-    - La vision d'avenir enthousiasmante
-
-QUESTIONS CENTRALES (5-8 questions ACCESSIBLES):
-Lister les questions que se posent les DÉCIDEURS NON-TECHNIQUES:
-- "Pourquoi devrais-je m'y intéresser ?" (pertinence personnelle)
-- "Comment ça marche, en simple ?" (vulgarisation)
-- "Quels bénéfices concrets pour mon business ?" (ROI)
-- "Qui le fait déjà et avec quels résultats ?" (preuve sociale)
-- "Quels sont les risques ?" (transparence)
-- "Par où commencer ?" (action concrète)
-- "Que va-t-il se passer dans 2-3 ans ?" (vision future)
-
-FORMAT DE RÉPONSE JSON:
+FORMAT JSON ATTENDU :
 {
   "dossierEditorial": {
     "sujet": "${topic.titre}",
-    "angleEditorial": "Angle unique et percutant",
-    "questionsCentrales": [
-      "Question 1 stratégique",
-      "Question 2 opérationnelle",
-      "Question 3 prospective",
-      "..."
-    ],
+    "angleEditorial": "Guide pratique et critique",
+    "questionsCentrales": ["Comment l'installer ?", "Est-ce ready for prod ?", "Le pricing est-il viable ?"],
     "sourcesComplementaires": [
       {
-        "titre": "Titre source",
-        "url": "https://...",
-        "date": "2025-10-03",
-        "typeSource": "media/report/blog/official",
-        "extraits": "Points clés extraits de cette source"
+        "titre": "Titre (Reddit/Doc/Blog)",
+        "url": "URL",
+        "typeSource": "forum/doc/tuto",
+        "extraits": "Avis clé ou étape technique importante"
       }
     ],
-    "donneesChiffrees": {
-      "montants": ["500M$ levés", "Valorisation 2B$", "CA 150M$ en 2024"],
-      "pourcentages": ["+45% croissance YoY", "15% part de marché"],
-      "previsions": ["Marché de 50B$ en 2030", "200M utilisateurs d'ici 2026"],
-      "statistiques": ["85% des banques adoptent l'IA", "Réduction coûts de 30%"]
+    "tutoriel": {
+      "etapes_cles": ["Étape 1", "Étape 2", "Étape 3"],
+      "pre_requis": "Ce qu'il faut savoir avant",
+      "code_snippets_possibles": "Idées de bouts de code à montrer"
     },
-    "citationsExperts": [
-      {
-        "auteur": "Prénom Nom",
-        "fonction": "CEO",
-        "entreprise": "Company X",
-        "citation": "Citation exacte ou paraphrase détaillée",
-        "source": "Interview Bloomberg 2025-10-02"
-      }
+    "avisCommunautaires": [
+      {"source": "Reddit r/webdev", "avis": "Positif/Négatif", "citation": "Ce que l'utilisateur a dit", "auteur": "pseudo"}
     ],
-    "contexteHistorique": {
-      "timeline": [
-        "2020: Événement 1",
-        "2022: Événement 2",
-        "2024: Événement 3"
-      ],
-      "precedents": "Description des situations similaires passées",
-      "evolution": "Comment on en est arrivé là"
-    },
-    "comparaisonsInternationales": {
-      "usa": "Situation aux USA",
-      "europe": "Situation en Europe",
-      "asie": "Situation en Asie",
-      "differences": "Principales différences et raisons"
-    },
     "analyseConcurrentielle": {
-      "concurrents": [
-        {
-          "nom": "Concurrent 1",
-          "partMarche": "25%",
-          "positionnement": "Leader premium",
-          "forces": "Innovation, brand",
-          "faiblesses": "Prix élevé"
-        }
-      ],
-      "dynamiqueMarche": "Description de la compétition"
-    },
-    "enjeuxControverses": {
-      "defis": ["Défi technique 1", "Défi réglementaire 2"],
-      "critiques": ["Critique 1 sur la vie privée", "Critique 2 sur les coûts"],
-      "risques": ["Risque de concentration", "Risque de dépendance"],
-      "debats": "Points de débat dans l'industrie"
-    },
-    "analogiesMetaphores": [
-      {
-        "concept": "Concept technique à vulgariser",
-        "analogie": "C'est comme si vous aviez un assistant personnel qui...",
-        "explication": "Explication simple et visuelle"
-      }
-    ],
-    "successStories": [
-      {
-        "entreprise": "Company Y",
-        "secteur": "Banking",
-        "situation_avant": "Problème rencontré, coûts, inefficacités",
-        "solution_adoptee": "Ce qu'ils ont mis en place",
-        "resultats_apres": "ROI concret: -60% fraude, +10M$ économies/an, +25% satisfaction client",
-        "citation_dirigeant": "Citation inspirante du CEO sur la transformation"
-      }
-    ],
-    "opportunitesBusinessLecteurs": {
-      "pourquoi_agir_maintenant": "Urgence et opportunité du moment",
-      "actions_concretes": ["Action 1 à entreprendre", "Action 2 à considérer"],
-      "investissements_surveiller": ["Secteur 1", "Technologie 2"],
-      "tendances_suivre": ["Tendance 1", "Tendance 2"],
-      "premier_pas": "Par où commencer concrètement"
-    },
-    "perspectivesFutur": {
-      "vision_enthousiasmante": "Ce qui va changer dans 2-3 ans (ton optimiste)",
-      "opportunites_emergentes": ["Opportunité 1", "Opportunité 2"],
-      "conseil_final": "Message inspirant et actionnable"
+      "concurrents": [{"nom": "Alt 1", "pourquoi_moins_bien": "..."}],
+      "verdict": "Quand utiliser l'un ou l'autre"
     },
     "syntheseRecherche": {
-      "hook_principal": "L'accroche qui donne envie de lire",
-      "message_cle": "Le message à retenir absolument",
-      "appel_action": "Ce que le lecteur doit faire après avoir lu"
+      "hook_principal": "L'accroche technique/business",
+      "message_cle": "Le conseil final de l'expert"
     }
   }
 }
 
-EXIGENCES CRITIQUES:
-- Minimum 10-15 sources complémentaires DIFFÉRENTES
-- Maximum de données chiffrées concrètes (pas de généralités)
-- 5-10 citations d'experts avec attribution complète
-- Contexte historique détaillé avec timeline
-- Comparaisons internationales factuelles
-- Analyse concurrentielle approfondie
-- Enjeux et controverses identifiés
-- Cas d'usage concrets avec résultats mesurables
-- Perspectives d'avenir avec scénarios
-- Return ONLY valid JSON
-
-Effectue maintenant une recherche EXHAUSTIVE et compile un dossier éditorial ULTRA-COMPLET.`;
+EXIGENCES:
+- Va chercher sur des forums (ajoute "site:reddit.com" ou "site:twitter.com" dans tes requêtes internes si possible).
+- Rapporte des faits techniques précis.
+- JSON VALIDE UNIQUEMENT.
+`;
   }
 
   /**
    * Enrich topic with deep research
    */
   async enrichTopic(topic) {
-    logger.info('🔬 Researcher Agent: Enriching topic with deep research...');
+    logger.info('🔬 Researcher Agent: Enriching topic with Perplexity research...');
     logger.info(`Topic: ${topic.titre}`);
 
     try {
       const prompt = this.buildResearchPrompt(topic);
       
-      logger.info('Calling Deep Research for topic enrichment...');
-      const result = await deepResearch(prompt, {
-        // Ne pas utiliser response_format json avec web_search
-        maxTokens: 16000, // Recherche très approfondie
+      logger.info('Calling Perplexity API for topic enrichment...');
+      // Utilisation de perplexitySearch (texte) au lieu de JSON pour gérer le parsing nous-mêmes
+      const result = await perplexitySearch(prompt, {
+        temperature: 0.2, 
+        maxTokens: 8000,
+        model: 'sonar-pro', 
+        systemPrompt: 'You are an expert researcher assistant. You ALWAYS return valid JSON based on real web search results.'
       });
 
       // Tentative de parsing JSON robuste
@@ -284,7 +114,9 @@ Effectue maintenant une recherche EXHAUSTIVE et compile un dossier éditorial UL
           const cleaned = sanitizeJsonLike(raw);
           dossier = JSON.parse(cleaned);
         } catch (e2) {
-          // Dernier recours: demander au modèle de normaliser en JSON strict
+          logger.warn('JSON parse failed, attempting repair with Gemini...');
+          
+          // Dernier recours: demander à Gemini de normaliser en JSON strict
           const repairPrompt = `Voici un contenu renvoyé par un outil de recherche qui DOIT être un JSON strict au format suivant (schéma simplifié):\n\n{
   "dossierEditorial": {
     "sujet": "string",
@@ -305,20 +137,20 @@ Effectue maintenant une recherche EXHAUSTIVE et compile un dossier éditorial UL
   }
 }\n\nTransforme STRICTEMENT le contenu suivant en JSON VALIDE qui respecte ce schéma. Ne renvoie QUE le JSON, sans texte additionnel.\n\n=== CONTENU A NORMALISER ===\n${raw}\n============================`;
 
-          const repaired = await completeJSON(repairPrompt, {
+          const repaired = await geminiCompleteJSON(repairPrompt, {
             temperature: 0,
             systemPrompt: 'You convert imperfect text into strict JSON matching the described schema. Return only JSON.',
           });
 
           if (!repaired?.data) {
-            // Log un extrait pour debug (sans spammer)
             const head = raw.slice(0, 200);
             const tail = raw.slice(-200);
-            logger.warn('Deep Research JSON parse failed. Raw head/tail:', { head, tail });
-            throw new Error('Deep Research returned non-JSON content');
+            logger.warn('JSON repair failed. Raw head/tail:', { head, tail });
+            throw new Error('Research returned non-JSON content and repair failed');
           }
 
           dossier = repaired.data;
+          logger.success('JSON successfully repaired by Gemini');
         }
       }
       
@@ -329,17 +161,16 @@ Effectue maintenant une recherche EXHAUSTIVE et compile un dossier éditorial UL
         // Combiner les sources originales avec les nouvelles
         sources: [
           ...(topic.sources || []),
-          ...(dossier.dossierEditorial.sourcesComplementaires || [])
+          ...(dossier.dossierEditorial?.sourcesComplementaires || [])
         ],
         // Marquer comme enrichi
         enriched: true,
         researchTokens: result.usage?.total_tokens,
       };
 
-      logger.success(`✅ Topic enriched with ${dossier.dossierEditorial.sourcesComplementaires?.length || 0} additional sources`);
+      logger.success(`✅ Topic enriched with ${dossier.dossierEditorial?.sourcesComplementaires?.length || 0} additional sources`);
       logger.info(`Total sources: ${enrichedTopic.sources.length}`);
       logger.info(`Citations: ${enrichedTopic.citationsExperts?.length || 0}`);
-      logger.info(`Données chiffrées: ${Object.keys(enrichedTopic.donneesChiffrees || {}).length} catégories`);
 
       return enrichedTopic;
 

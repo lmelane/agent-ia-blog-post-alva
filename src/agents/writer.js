@@ -1,4 +1,4 @@
-import { complete } from '../utils/openai-client.js';
+import { geminiComplete } from '../utils/gemini-client.js';
 import logger from '../utils/logger.js';
 import fileManager from '../utils/file-manager.js';
 import slugify from 'slugify';
@@ -35,233 +35,119 @@ export class WriterAgent {
    * Build prompt for article writing with strict structure
    */
   buildWritingPrompt(topic) {
-    return `Tu es un journaliste star qui écrit pour des DÉCIDEURS NON-TECHNIQUES.
-Ton style : PÉDAGOGIQUE, ACCROCHEUR, VENDEUR, INSPIRANT.
-Ton modèle : Les Échos rencontre Malcolm Gladwell (vulgarisation brillante + storytelling captivant).
+    const isTutorial = topic.tutoriel && topic.tutoriel.etapes_cles && topic.tutoriel.etapes_cles.length > 0;
+    
+    // Construction dynamique du contexte basé sur la recherche
+    let researchContext = '';
+    
+    if (isTutorial) {
+      researchContext += `\n📘 DONNÉES TUTORIEL DISPONIBLES:\n`;
+      researchContext += `Pré-requis: ${topic.tutoriel.pre_requis}\n`;
+      researchContext += `Étapes clés: ${topic.tutoriel.etapes_cles.join('\n')}\n`;
+      researchContext += `Code snippets idées: ${topic.tutoriel.code_snippets_possibles}\n`;
+    }
 
-📁 DOSSIER ÉDITORIAL COMPLET:
+    if (topic.avisCommunautaires && topic.avisCommunautaires.length > 0) {
+      researchContext += `\n🗣️ AVIS COMMUNAUTAIRES (Reddit/X):\n`;
+      topic.avisCommunautaires.forEach(avis => {
+        researchContext += `- ${avis.auteur} sur ${avis.source}: "${avis.avis}"\n`;
+      });
+    }
 
+    if (topic.analyseConcurrentielle) {
+      researchContext += `\n🆚 ANALYSE CONCURRENTIELLE:\n`;
+      if (topic.analyseConcurrentielle.concurrents) {
+        topic.analyseConcurrentielle.concurrents.forEach(c => {
+          researchContext += `- ${c.nom}: ${c.pourquoi_moins_bien || c.forces}\n`;
+        });
+      }
+      if (topic.analyseConcurrentielle.verdict) {
+        researchContext += `Verdict: ${topic.analyseConcurrentielle.verdict}\n`;
+      }
+    }
+
+    const structureType = isTutorial ? 'TUTORIEL / GUIDE PRATIQUE' : 'ANALYSE DE FOND / SUJET CHAUD';
+
+    return `Tu es l'IA de Rédaction de l'Agence Web Beauchoix.fr (Expert MVP & SaaS).
+Ton style : NOUS (L'équipe), PRAGMATIQUE, "HANDS-ON", VÉCU.
+Tu écris au nom de l'agence pour des fondateurs et devs.
+
+TYPE D'ARTICLE : ${structureType}
+
+📁 DOSSIER DE RECHERCHE:
 SUJET: ${topic.titre}
 CATÉGORIE: ${topic.categorie}
 RÉSUMÉ: ${topic.resume}
 IMPACT BUSINESS: ${topic.impact}
+${researchContext}
 
-ANGLE ÉDITORIAL:
-${topic.angleEditorial || 'Analyser l\'impact business et les implications stratégiques'}
+DONNÉES CLÉS & CHIFFRES:
+${JSON.stringify(topic.donneesChiffrees || {}, null, 2)}
 
-QUESTIONS CENTRALES (à répondre dans l'article):
-${topic.questionsCentrales?.map((q, i) => `${i+1}. ${q}`).join('\n') || '1. Quels sont les enjeux ?\n2. Quelles implications pour les entreprises ?\n3. Quelles perspectives d\'avenir ?'}
+SOURCES:
+${topic.sources?.map((s, i) => `[${i + 1}] ${s.titre}: ${s.url}`).join('\n') || 'N/A'}
 
-DONNÉES CHIFFRÉES (à intégrer):
-${JSON.stringify(topic.donneesChiffrees || {montants: 'À rechercher', pourcentages: 'À analyser', previsions: 'À projeter'}, null, 2)}
+🎯 CONTRAINTES DE RÉDACTION:
+- Longueur : 1500-2000 mots (Guide complet).
+- Format : Markdown riche (H1, H2, H3, Listes, Code blocks, Citations).
+- Ton : "Nous" (L'équipe Beauchoix). Bannir le "Je". Utilisez "Nous avons testé", "Notre avis".
+- Structure : Logique et fluide.
 
-CONTEXTE HISTORIQUE:
-${topic.contexteHistorique || 'Situer cette actualité dans son contexte historique et sectoriel'}
+STRUCTURE OBLIGATOIRE (${isTutorial ? 'Version Tutoriel' : 'Version Analyse'}):
 
-COMPARAISONS:
-${topic.comparaisons || 'Comparer avec situations similaires, concurrents, autres marchés'}
-
-CITATIONS EXPERTS:
-${topic.citationsExperts?.map(c => `- ${c.auteur}: "${c.citation}" (${c.source})`).join('\n') || 'Intégrer des citations si disponibles dans les sources'}
-
-CONTROVERSES/LIMITES:
-${topic.controverses || 'Analyser les défis, risques, critiques potentielles'}
-
-SOURCES (${topic.sources?.length || 0}):
-${topic.sources?.map((s, i) => `[${i + 1}] ${s.titre}: ${s.url} (${s.date})`).join('\n') || 'N/A'}
-
-ANALOGIES & MÉTAPHORES (à utiliser):
-${topic.analogiesMetaphores?.map(a => `- ${a.concept}: ${a.analogie}`).join('\n') || 'Créer des analogies accessibles'}
-
-SUCCESS STORIES (à raconter):
-${topic.successStories?.map(s => `- ${s.entreprise}: ${s.resultats_apres}`).join('\n') || 'Intégrer des success stories'}
-
-OPPORTUNITÉS POUR LE LECTEUR:
-${topic.opportunitesBusinessLecteurs?.actions_concretes?.join(', ') || 'Montrer comment en profiter'}
-
-🎯 OBJECTIF CRITIQUE - LONGUEUR OBLIGATOIRE:
-
-MINIMUM ABSOLU: 1200 mots (compter les mots !)
-OBJECTIF IDÉAL: 1400-1500 mots
-MAXIMUM: 1800 mots
-
-⚠️ IMPORTANT: Si l'article fait moins de 1200 mots, il sera REJETÉ.
-Chaque section H2 doit contenir 200-300 mots minimum (4-6 paragraphes développés).
-
-L'article doit :
-- VULGARISER brillamment (comme Malcolm Gladwell)
-- ACCROCHE dès la première ligne
-- RACONTER une histoire captivante avec DÉTAILS
-- DÉVELOPPER chaque point en profondeur
-- DONNER des EXEMPLES CONCRETS multiples
-- VENDRE l'opportunité business
-- INSPIRER et donner envie d'agir
-- Montrer la PROFONDEUR de recherche (multi-sources visibles)
-
-STRUCTURE STRICTE À SUIVRE:
-
-# [Titre accrocheur et SEO-optimisé - SEULEMENT première lettre en majuscule]
+# [Titre Ultra-Accrocheur avec Bénéfice - ex: "Comment X nous a fait gagner Y"]
 
 **Catégorie:** ${topic.categorie}
 
 ## Résumé
-[Écrire exactement 8 lignes qui résument l'article de manière engageante et informative]
+[TL;DR de 8 lignes : Le problème, La solution, Ce que vous allez apprendre avec nous]
 
 ## Introduction
-[2-3 paragraphes qui introduisent le sujet, son contexte et pourquoi c'est important maintenant]
+[Hook émotionnel ou constat marché. "Nous rencontrons souvent ce problème avec nos clients...". Présente l'outil/sujet comme une solution potentielle.]
 
-## [Section H2 principale 1 - seulement première lettre en majuscule]
-[Contenu détaillé avec sous-sections H3 si nécessaire]
+${isTutorial ? `
+## [H2 - Pourquoi cette stack/outil change la donne]
+[Analyse rapide : pourquoi maintenant ? Pourquoi ça buzz ? Comparaison avec l'existant.]
 
-### [Sous-section H3 si nécessaire - seulement première lettre en majuscule]
-[Contenu]
+## [H2 - Pré-requis et Installation (Le Setup)]
+[Guide pas à pas. Commandes terminal simulées si besoin. Configuration initiale.]
 
-## [Section H2 principale 2 - seulement première lettre en majuscule]
-[Contenu détaillé]
+## [H2 - Le Tuto : Créer votre premier ${topic.keywords?.[0] || 'projet'}]
+[Cœur de l'article. Étape par étape. Explique la logique. Ajoute des "💡 Astuce Beauchoix".]
+` : `
+## [H2 - Analyse du Marché et du Besoin]
+[Pourquoi ce sujet explose. Qui sont les acteurs. Les chiffres clés.]
 
-## [Section H2 principale 3 - seulement première lettre en majuscule]
-[Contenu détaillé]
+## [H2 - Deep Dive : Ce qui change vraiment]
+[Analyse technique et business. Avantages compétitifs. La "Secret Sauce".]
+`}
 
-## [Section H2 principale 4 si nécessaire - seulement première lettre en majuscule]
-[Contenu détaillé]
+## [H2 - Les Vrais Retours du Terrain (Avis & Communauté)]
+[Utilise les avis communautaires fournis. Sois honnête sur les bugs, le pricing, la DX. "Sur Reddit, nous voyons que..."]
+
+## [H2 - Cas d'Usage : Pour qui est-ce vraiment fait ?]
+[Startups ? Entreprises ? Indie Hackers ? Donne des exemples concrets.]
+
+## [H2 - Notre Verdict d'Expert]
+[Faut-il l'utiliser en prod en 2026 ? Oui/Non/Peut-être. Note finale sur la maturité.]
 
 ## FAQ
-
-### Question 1 pertinente ?
-Réponse concise et précise.
-
-### Question 2 pertinente ?
-Réponse concise et précise.
-
-### Question 3 pertinente ?
-Réponse concise et précise.
+### [Question technique fréquente] ?
+[Réponse précise]
+### [Question sur le pricing/coût] ?
+[Réponse chiffrée]
 
 ## Conclusion
+[Synthèse. Ouverture. Encouragement à tester.]
 
-[Résumé des points clés et perspectives d'avenir]
-
-**Call-to-Action:** [Incitation à l'action - ex: "Restez informé des dernières innovations IA en suivant notre newsletter" ou "Découvrez comment cette technologie peut transformer votre entreprise"]
+**Call-to-Action:** [Lien vers Beauchoix : "Besoin d'aide pour intégrer ${topic.titre} dans votre MVP ? Nous pouvons le faire en 3 semaines."]
 
 ## Sources
+[Liste des sources]
 
-⚠️ CRITIQUE: Tu DOIS lister TOUTES les ${topic.sources?.length || 0} sources fournies ci-dessus, dans l'ordre exact.
-Format obligatoire pour CHAQUE source:
-1. [Titre de la source 1](URL1) (date1)
-2. [Titre de la source 2](URL2) (date2)
-3. [Titre de la source 3](URL3) (date3)
-... jusqu'à la source ${topic.sources?.length || 0}
-
-NE PAS omettre de sources. NE PAS en inventer. Copier EXACTEMENT les ${topic.sources?.length || 0} sources listées ci-dessus.
-
-⚠️ RÈGLE TYPOGRAPHIQUE FRANÇAISE IMPORTANTE:
-- Titres H1, H2, H3 : SEULEMENT la première lettre en majuscule
-- Exemple CORRECT: "Comment l'IA transforme le secteur bancaire"
-- Exemple INCORRECT: "Comment L'IA Transforme Le Secteur Bancaire"
-- Exception: noms propres, acronymes (IA, GPT, etc.)
-
-EXIGENCES CRITIQUES POUR UN ARTICLE PROFESSIONNEL:
-
-📝 CONTENU & PROFONDEUR:
-1. EXEMPLES CONCRETS: Inclure des cas d'usage précis, des entreprises nommées, des chiffres concrets
-2. CITATIONS D'EXPERTS: Intégrer des citations de dirigeants, analystes ou chercheurs (si disponibles dans les sources)
-3. CONTEXTE HISTORIQUE: Situer l'actualité dans son contexte (évolution, précédents, timeline)
-4. NUANCES & LIMITES: Mentionner les défis, limites techniques, controverses potentielles
-5. DONNÉES CHIFFRÉES: Statistiques, montants, pourcentages, prévisions de marché
-6. COMPARAISONS: Comparer avec des solutions existantes ou concurrents
-
-✍️ STYLE & NARRATION:
-7. ACCROCHE PERCUTANTE: Commencer l'introduction avec une statistique choc, une citation ou un fait marquant
-8. STORYTELLING: Raconter une histoire, créer une narration engageante (pas un communiqué de presse)
-9. MÉTAPHORES: Utiliser des analogies pour vulgariser les concepts techniques
-10. TITRES IMPACTANTS: Sections H2 avec formulations engageantes (SANS emojis ni icônes)
-11. ÉVITER RÉPÉTITIONS: Varier le vocabulaire, ne pas répéter les mêmes idées
-12. TON JOURNALISTIQUE: Professionnel mais vivant, factuel mais engageant
-
-🎯 STRUCTURE & SEO:
-13. RÉDIGER ENTIÈREMENT EN FRANÇAIS
-14. LONGUEUR OBLIGATOIRE selon type:
-    - Articles standards (analyse, brèves approfondies): 800-1500 mots MINIMUM
-    - Dossiers/enquêtes approfondis: 1500-3000 mots
-    - OBJECTIF: Viser 1200-1500 mots pour un article complet et riche
-    - Chaque section H2 doit contenir 150-300 mots (3-5 paragraphes développés)
-15. Résumé de 8-10 lignes PERCUTANT avec chiffres-clés
-16. Sous-titres H3 optimisés SEO avec mots-clés secondaires
-17. FAQ avec questions SPÉCIFIQUES et détaillées (pas génériques)
-18. Mots-clés naturels: ${topic.keywords?.join(', ') || 'IA, intelligence artificielle, business'}
-19. Citations sources avec [1], [2] dans le texte - UTILISER TOUTES LES SOURCES DISPONIBLES (pas seulement 1 ou 2)
-
-📰 STYLE LES ÉCHOS - STRUCTURE DÉTAILLÉE (8-14 paragraphes minimum):
-
-INTRODUCTION (2 paragraphes):
-20. Paragraphe 1: Exposer le fait marquant, situation de départ, données factuelles ("selon", "aujourd'hui", "face à")
-21. Paragraphe 2: Transition vers développement, annoncer les enjeux ("Dans ce contexte", "C'est précisément ce que")
-
-DÉVELOPPEMENT (6-10 paragraphes MINIMUM - CŒUR DE L'ARTICLE):
-22. Paragraphes thématiques: Traiter chaque sous-aspect avec données + explication + cause/conséquence + EXEMPLES
-23. Paragraphes de comparaison: Comparer avec autre période/pays ("en comparaison avec", "tandis que")
-24. Paragraphes de témoignage: Insérer citations dirigeants/experts ("Selon X", "comme le rappelle Y")
-25. Paragraphes de contraste: Montrer risques, contradictions ("Cependant", "mais", "pourtant")
-26. Paragraphes d'exemples concrets: Success stories détaillées, cas d'usage, transformations business
-27. Chaque paragraphe = UNE idée centrale, autonome, 4-6 phrases MINIMUM (pas de paragraphes courts !)
-
-ANALYSE (2-3 paragraphes):
-27. Paragraphe d'interprétation: Signification des faits ("Cela montre que", "Cette évolution suggère")
-28. Paragraphe de scénarios: Hypothèses futures ("Si...alors", "à condition que", "dans l'hypothèse où")
-
-CONCLUSION (1 paragraphe):
-29. Synthèse + ouverture avec question ("En résumé", "L'enjeu sera de", "Reste à voir si")
-
-TRANSITIONS & FLUIDITÉ:
-30. Utiliser connecteurs logiques entre paragraphes (reprise mots-clés, transitions fluides)
-31. Varier longueur paragraphes (une phrase seule peut marquer une idée forte)
-32. Pyramide inversée: Commencer par le plus important, puis développer
-
-📰 TON GRAND PUBLIC - PÉDAGOGIQUE & ACCROCHEUR (CRITIQUE):
-33. VULGARISATION BRILLANTE: Expliquer TOUT concept technique avec analogies simples
-34. STORYTELLING CAPTIVANT: Raconter une histoire, créer du suspense, maintenir l'attention
-35. TON CONVERSATIONNEL: Parler AU lecteur ("Imaginez que...", "Vous vous demandez peut-être...")
-36. HOOKS PUISSANTS: Chaque paragraphe commence par une accroche qui donne envie de lire
-37. EXEMPLES CONCRETS: "C'est comme si...", situations du quotidien, cas réels
-38. TON ENTHOUSIASTE MAIS CRÉDIBLE: Montrer l'opportunité sans survendre
-39. PHRASES VARIÉES: Alterner courtes (impact) et longues (explication), rythme dynamique
-40. VOCABULAIRE ACCESSIBLE: Zéro jargon non expliqué, langage naturel et fluide
-41. APPEL À L'ACTION: Inspirer, motiver, donner envie d'agir ("Et vous, qu'allez-vous faire ?")
-
-📊 DONNÉES & CRÉDIBILITÉ:
-40. CHIFFRES SYSTÉMATIQUES: Chaque affirmation appuyée par données vérifiables
-41. ATTRIBUTION SOURCES: "Selon [source]", "d'après [étude]", "[expert] affirme que"
-42. COMPARAISONS TEMPORELLES: "+X% par rapport à l'an dernier", évolutions sur période
-43. EXEMPLES CONCRETS: Entreprises nommées, cas d'usage précis, secteurs identifiés
-44. CITATIONS INTÉGRÉES: Guillemets typographiques, nom + fonction de la personne citée
-
-🎯 VULGARISATION & PÉDAGOGIE:
-42. ANALOGIES SYSTÉMATIQUES: Chaque concept technique = 1 analogie simple
-43. "C'EST COMME SI...": Comparaisons avec vie quotidienne
-44. EXEMPLES VISUELS: Aider le lecteur à "voir" mentalement
-45. PROGRESSION PÉDAGOGIQUE: Du simple au complexe, étape par étape
-46. ANTICIPER LES QUESTIONS: "Vous vous demandez sûrement...", "La question que tout le monde se pose..."
-
-💡 SUCCESS STORIES & PREUVES:
-47. RACONTER DES TRANSFORMATIONS: "Avant, X galéraient avec... Aujourd'hui, grâce à..."
-48. CHIFFRES SPECTACULAIRES: ROI, économies, croissance (toujours sourcés)
-49. TÉMOIGNAGES INSPIRANTS: Citations de dirigeants enthousiastes
-50. PREUVE SOCIALE: "85% des banques l'adoptent déjà", "Les leaders du secteur..."
-
-🚀 OPPORTUNITÉS & APPEL À L'ACTION:
-51. MONTRER LE POTENTIEL: "Imaginez ce que vous pourriez accomplir..."
-52. ACTIONS CONCRÈTES: "Voici par où commencer", "Les 3 premières étapes"
-53. URGENCE POSITIVE: "C'est le moment d'agir", "L'opportunité est là"
-54. VISION ENTHOUSIASMANTE: Peindre un futur désirable et atteignable
-55. CONCLUSION INSPIRANTE: Laisser le lecteur motivé et prêt à agir
-
-⚠️ IMPORTANT:
-- Ne PAS inclure de YAML front-matter
-- Commencer directement avec le titre H1
-- Citer TOUTES les sources utilisées
-- Être factuel mais captivant
-- Apporter de la VALEUR au lecteur (insights, analyses, perspectives)
-
-Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces critères:`;
+## Post Social Media (LinkedIn/X)
+[Rédige un post accrocheur pour LinkedIn/X présentant cet article. Ton : Provocant ou 'Insight', avec des émojis. Termine par le lien de l'article.]
+`;
   }
 
   /**
@@ -270,6 +156,24 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
   extractTitle(article) {
     const match = article.match(/^#\s+(.+)$/m);
     return match ? match[1].trim() : 'Untitled';
+  }
+
+  /**
+   * Extract Social Post
+   */
+  extractSocialPost(article) {
+    const match = article.match(/##\s+Post Social Media.*?\n([\s\S]+?)$/i);
+    if (match) {
+      return match[1].trim();
+    }
+    return '';
+  }
+
+  /**
+   * Remove Social Post from content
+   */
+  removeSocialPost(article) {
+    return article.replace(/##\s+Post Social Media[\s\S]+$/, '').trim();
   }
 
   /**
@@ -295,9 +199,9 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
   }
 
   /**
-   * Generate YAML front-matter (simplifié - uniquement champs Webflow)
+   * Generate YAML front-matter (simplifié - uniquement champs Webflow + Social)
    */
-  generateFrontMatter(topic, article) {
+  generateFrontMatter(topic, article, socialPost = '') {
     const title = this.extractTitle(article);
     const summary = this.extractSummary(article);
     const slug = slugify(title, {
@@ -313,6 +217,7 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
       slug,
       category: topic.categorie,
       excerpt,
+      social_post: socialPost, // New field for social media intro
       reading_time: this.calculateReadingTime(article),
       seo: {
         title,
@@ -322,7 +227,7 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
       sources: topic.sources?.map(s => ({
         titre: s.titre,
         url: s.url,
-        date: s.date,
+        date: s.date || null,
         date_fr: s.date ? new Date(s.date).toLocaleDateString('fr-FR', {
           day: 'numeric',
           month: 'long',
@@ -386,6 +291,11 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
     // Check for FAQ section
     if (!article.match(/##\s+FAQ/i)) {
       issues.push('Missing FAQ section');
+    }
+
+    // Check for Conclusion section
+    if (!article.match(/##\s+Conclusion/i)) {
+      issues.push('Missing Conclusion section');
     }
 
     // Check for CTA
@@ -472,12 +382,12 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
           ? basePrompt
           : `${basePrompt}\n\nIMPORTANT: Le brouillon précédent faisait ${validation.stats.wordCount} mots. Étends l'article à AU MOINS 1200 mots en développant:\n- L'analyse économique et les implications business (2 paragraphes)\n- Des exemples concrets et chiffrés (2 paragraphes)\n- Une success story détaillée (1-2 paragraphes)\n- La FAQ (ajoute 2 questions pertinentes avec réponses détaillées)\nGarde le ton pédagogique, accrocheur, sans répétitions, et respecte la typographie des titres.`;
 
-        const result = await complete(prompt, {
+        const result = await geminiComplete(prompt, {
           temperature: 0.7,
-          maxTokens: 6000, // Articles 1200-1500 mots minimum
+          maxTokens: 8000, // Articles 1200-1500 mots minimum
         });
 
-        logger.info('Article generated', {
+        logger.info('Article generated with Gemini', {
           model: result.model,
           tokensUsed: result.usage?.total_tokens,
           attempt,
@@ -505,18 +415,27 @@ Rédige maintenant un article EXCEPTIONNEL en français qui respecte TOUS ces cr
 
       logger.info('Article stats:', validation.stats);
 
-      // Generate front-matter
-      const frontMatter = this.generateFrontMatter(topic, articleContent);
+      // Extract Social Post (Proactive generation)
+      const socialPost = this.extractSocialPost(articleContent);
+      if (socialPost) {
+        logger.info('📱 Social Post extracted');
+      }
+
+      // Remove Social Post from content for clean publishing
+      const cleanArticleContent = this.removeSocialPost(articleContent);
+
+      // Generate front-matter with social post
+      const frontMatter = this.generateFrontMatter(topic, cleanArticleContent, socialPost);
 
       // Create complete article
       const completeArticle = this.createCompleteArticle(
-        articleContent,
+        cleanArticleContent,
         frontMatter,
         topic.sources
       );
 
       // Generate filename
-      const filename = this.generateFilename(topic, articleContent);
+      const filename = this.generateFilename(topic, cleanArticleContent);
 
       // Save article
       const filePath = await fileManager.saveArticle(completeArticle, filename);

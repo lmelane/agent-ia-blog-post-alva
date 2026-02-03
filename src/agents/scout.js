@@ -1,4 +1,4 @@
-import { deepResearch, completeJSON } from '../utils/openai-client.js';
+import { perplexitySearchJSON } from '../utils/perplexity-client.js';
 import config from '../config.js';
 import logger from '../utils/logger.js';
 import fileManager from '../utils/file-manager.js';
@@ -23,30 +23,47 @@ export class ScoutAgent {
     const todayStr = today.toISOString().split('T')[0];
     const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    return `Tu es un agent de veille IA. Couvre TOUTES les actualités IA (tech, société, politique, santé, énergie, éducation, secteur public/privé), mais ROUTE toujours vers un angle ÉCONOMIQUE/FINANCIER/ORGANISATIONNEL clair (entreprise incluse).
+    return `Tu es un expert en veille technologique pour une Agence Web (Beauchoix.fr).
+Ta mission : Identifier des sujets "chauds" ou des outils émergents qui méritent un tutoriel complet ou une analyse approfondie.
 
-PRIORITÉ GÉOGRAPHIQUE: France et Europe. Les sujets hors France/Europe ne sont retenus QUE s'ils ont un impact direct et chiffrable sur l'écosystème européen.
+CIBLE : Développeurs, Fondateurs, Indie Hackers.
+
+SOURCES À PRIVILÉGIER :
+- Discussions virales sur X (Twitter) et LinkedIn (Tech).
+- Threads populaires sur Reddit (r/webdev, r/SaaS, r/startups).
+- Nouveaux outils sur Product Hunt ou GitHub Trending.
+- Mises à jour majeures de frameworks (Next.js, React, Supabase, etc.).
+
+TYPE DE SUJETS RECHERCHÉS :
+1. "How-to" / Tutoriels sur une stack moderne (ex: "Comment utiliser MoltBot pour coder une app en 1h").
+2. Comparatifs d'outils No-Code/Low-Code qui buzzent.
+3. Retours d'expérience concrets ("Pourquoi j'ai quitté Vercel pour Railway").
+4. Analyses de tendances de fond (ex: "La fin du SaaS par abonnement ?").
+
+CONTRAINTES :
+- Ne te limite pas strictement aux dernières 48h si un sujet est très pertinent et actuel.
+- Cherche le "Signal" au milieu du "Bruit".
+- L'angle doit être : "Voici l'outil dont tout le monde parle, on vous explique comment l'utiliser concrètement".
 
 DATE COURANTE: ${today.toISOString()}
-FENÊTRE: ${twoDaysAgo} → ${todayStr}
 
 RENVOIE UNIQUEMENT DU JSON STRICT AU FORMAT SUIVANT:
 {
   "topics": [
     {
-      "titre": "Titre clair et accrocheur",
-      "resume": "3-4 phrases avec données clés (montants, dates, parts de marché, %)",
-      "impact": "Pourquoi c'est important maintenant — implications économiques, financières et organisationnelles (performance, productivité, gains de temps, emploi/restructurations, coûts/ROI)",
+      "titre": "Titre accrocheur (Style YouTube/Medium)",
+      "resume": "Ce que c'est + Pourquoi c'est hot",
+      "impact": "Valeur ajoutée pour le lecteur (Gain de temps, Argent, Compétence)",
       "categorie": "ONE of: ${categoriesStr}",
-      "angleEditorial": "Angle unique orienté décideurs",
-      "questionsCentrales": ["Q1", "Q2", "Q3"],
-      "donneesChiffrees": {"montants": "Ex: 500M€", "pourcentages": "+45%", "previsions": "marché 2T$ en 2030"},
-      "contexteHistorique": "2-3 phrases",
-      "comparaisons": "comparaisons UE/USA/Asie ou marché/concurrents",
-      "citationsExperts": [{"auteur": "Nom, Titre, Org", "citation": "...", "source": "..."}],
-      "controverses": "défis/risques/limites (réglementaires, sociaux, économiques)",
-      "sources": [{"titre": "Source FR/EU prioritaire", "url": "https://...", "date": "${todayStr}", "typeSource": "media/report/blog/official"}],
-      "keywords": ["mot1", "mot2", "mot3"],
+      "angleEditorial": "Tutorial / Deep Dive / Retour d'expérience",
+      "questionsCentrales": ["Comment ça marche ?", "Combien ça coûte ?", "Limites ?"],
+      "donneesChiffrees": {"metrics": "Stars GitHub, Upvotes, Views"},
+      "contexteHistorique": "D'où ça sort ?",
+      "comparaisons": "Vs l'ancien standard",
+      "citationsExperts": [{"auteur": "@user", "citation": "Tweet/Commentaire pertinent", "source": "X/Reddit"}],
+      "controverses": "Points de friction (Pricing, Bugs, Lock-in)",
+      "sources": [{"titre": "Thread/Repo/Launch", "url": "https://...", "date": "Recent", "typeSource": "social/tech"}],
+      "keywords": ["tool", "stack", "problem"],
       "publishDate": "${todayStr}T10:00:00Z"
     }
   ]
@@ -112,20 +129,21 @@ RENVOIE UNIQUEMENT DU JSON STRICT AU FORMAT SUIVANT:
    * Run the scout agent with JSON response
    */
   async run() {
-    logger.info('🔍 Scout Agent: Starting Deep Research...');
+    logger.info('🔍 Scout Agent: Starting Perplexity Search...');
 
     try {
       const prompt = this.buildResearchPrompt();
-      logger.info('Calling Deep Research API...');
+      logger.info('Calling Perplexity API...');
 
-      const result = await completeJSON(prompt, {
+      const result = await perplexitySearchJSON(prompt, {
         temperature: 0.7,
-        systemPrompt: 'You are an AI research assistant that returns structured JSON data about trending AI news.',
+        systemPrompt: 'You are an AI research assistant that returns structured JSON data about trending AI news. Search the web for the latest news and return valid JSON only.',
       });
 
-      logger.info('Deep Research completed', {
+      logger.info('Perplexity search completed', {
         model: result.model,
         tokensUsed: result.usage?.total_tokens,
+        citationsCount: result.citations?.length || 0,
       });
 
       const jsonData = result.data;
