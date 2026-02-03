@@ -19,14 +19,18 @@ export class ScoutAgent {
    */
   buildResearchPrompt() {
     const categoriesStr = this.categories.join(', ');
+    const topicsStr = this.topics.join(', ');
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     return `Tu es un expert en veille technologique pour une Agence Web (Beauchoix.fr).
-Ta mission : Identifier des sujets "chauds" ou des outils émergents qui méritent un tutoriel complet ou une analyse approfondie.
+Ta mission : Identifier 5 à 10 sujets "chauds" ou des outils émergents qui méritent un tutoriel complet ou une analyse approfondie.
 
 CIBLE : Développeurs, Fondateurs, Indie Hackers.
+
+THÈMES PRIORITAIRES (Mots-clés) :
+${topicsStr}
 
 SOURCES À PRIVILÉGIER :
 - Discussions virales sur X (Twitter) et LinkedIn (Tech).
