@@ -95,6 +95,22 @@ app.get('/api/articles', authenticateAPI, async (req, res) => {
   }
 });
 
+app.get('/api/articles/:slug', authenticateAPI, async (req, res) => {
+  try {
+    const { getArticleBySlug } = await import('../utils/database.js');
+    const article = await getArticleBySlug(req.params.slug);
+    
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+    
+    res.json({ article });
+  } catch (error) {
+    logger.error('Error getting article', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export function startServer() {
   // Ensure storage directory exists
   if (!fs.existsSync(storagePath)) {

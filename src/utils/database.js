@@ -216,6 +216,26 @@ export async function getAllArticles(limit = 50) {
 }
 
 /**
+ * Get full article by slug
+ */
+export async function getArticleBySlug(slug) {
+  try {
+    const result = await pool.query(
+      `SELECT a.*, c.name as category 
+       FROM articles a
+       LEFT JOIN categories c ON a.category_id = c.id
+       WHERE a.slug = $1`,
+      [slug]
+    );
+
+    return result.rows[0] || null;
+  } catch (error) {
+    logger.error('Failed to get article by slug', error);
+    return null;
+  }
+}
+
+/**
  * Check if article exists by slug
  */
 export async function articleExists(slug) {

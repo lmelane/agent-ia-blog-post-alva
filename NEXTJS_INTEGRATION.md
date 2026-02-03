@@ -1,44 +1,89 @@
-# 🚀 Guide d'Intégration Next.js (App Router)
+# 🚀 Guide d'Intégration Next.js (Via API Sécurisée)
 
-Voici comment afficher vos articles générés par l'IA sur votre site Next.js.
-L'architecture est simple : Next.js se connecte directement à votre base de données PostgreSQL (Railway) pour récupérer le contenu en temps réel.
+Ce guide explique comment afficher vos articles générés par l'IA sur votre site Next.js en utilisant l'API sécurisée de l'agent.
 
-## 1. Installation des dépendances
+## 1. Variables d'Environnement
 
-Dans votre projet Next.js :
+Dans votre projet Next.js (`.env.local`), ajoutez :
 
 ```bash
-npm install pg gray-matter react-markdown lucide-react date-fns
-npm install -D @types/pg
+# URL de votre Agent IA sur Railway
+AGENT_API_URL=https://agent-ia-post-production.up.railway.app
+
+# Clé API Sécurisée (Doit correspondre à API_SECRET_KEY sur Railway)
+AGENT_API_KEY=votre_cle_api_secrete_generee
 ```
 
-## 2. Configuration de la Base de Données
+## 2. Créer un Client API (`lib/api.ts`)
 
-Créez un fichier `lib/db.ts` pour gérer la connexion (Singleton pattern pour éviter de saturer les connexions en dev).
+Créez un fichier pour centraliser les appels à l'API de l'agent :
 
 ```typescript
-// lib/db.ts
-import { Pool } from 'pg';
+// lib/api.ts
+import { Article } from '@/types/article';
 
-const globalForDb = globalThis as unknown as {
-  conn: Pool | undefined;
-};
+const API_URL = process.env.AGENT_API_URL;
+const API_KEY = process.env.AGENT_API_KEY;
 
-const conn = globalForDb.conn ?? new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }, // Nécessaire pour Railway/Prod
-});
+if (!API_URL || !API_KEY) {
+  throw new Error('AGENT_API_URL and AGENT_API_KEY must be defined');
+}
 
-if (process.env.NODE_ENV !== 'production') globalForDb.conn = conn;
+/**
+ * Récupérer tous les articles
+ */
+export async function getArticles(): Promise<Article[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/articles`, {
+      headers: {
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 3600 }, // Cache ISR (1 heure)
+    });
 
-export const db = conn;
+    if (!res.ok) {
+      console.error('Failed to fetch articles:', await res.text());
+      return [];
+    }
+
+    const data = await res.json();
+    return data.articles || [];
+  } catch (error) {
+    console.error('API Error:', error);
+    return [];
+  }
+}
+
+/**
+ * Récupérer un article par son slug
+ */
+export async function getArticle(slug: string): Promise<Article | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/articles/${slug}`, {
+      headers: {
+        'x-api-key': API_KEY,
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 3600 }, // Cache ISR (1 heure)
+    });
+
+    if (!res.ok) {
+      if (res.status === 404) return null;
+      console.error(`Failed to fetch article ${slug}:`, await res.text());
+      return null;
+    }
+
+    const data = await res.json();
+    return data.article;
+  } catch (error) {
+    console.error('API Error:', error);
+    return null;
+  }
+}
 ```
 
-N'oubliez pas d'ajouter `DATABASE_URL` dans votre `.env.local` Next.js (la même que pour l'agent).
-
-## 3. Définition des Types
-
-Créez `types/article.ts` :
+## 3. Définition des Types (`types/article.ts`)
 
 ```typescript
 // types/article.ts
@@ -48,12 +93,12 @@ export interface Article {
   slug: string;
   category: string;
   excerpt: string;
-  content: string;
-  thumbnail_url: string; // ex: "/images/mon-article.png"
-  published_at: Date;
+  content: string; // Markdown
+  thumbnail_url: string; // URL Cloudinary
+  published_at: string;
   metadata: {
     reading_time: number;
-    social_post?: string; // Le fameux post LinkedIn généré
+    social_post?: string;
     seo: {
       title: string;
       description: string;
@@ -68,30 +113,19 @@ export interface Article {
 }
 ```
 
-## 4. Page : Liste des Articles (/blog)
-
-Créez `app/blog/page.tsx` :
+## 4. Page Liste des Articles (`app/blog/page.tsx`)
 
 ```tsx
-import { db } from '@/lib/db';
+import { getArticles } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-// Revalidate toutes les heures (ISR)
-export const revalidate = 3600;
-
-async function getArticles() {
-  const res = await db.query(`
-    SELECT a.*, c.name as category 
-    FROM articles a
-    LEFT JOIN categories c ON a.category_id = c.id
-    WHERE a.published_at IS NOT NULL
-    ORDER BY a.published_at DESC
-  `);
-  return res.rows;
-}
+export const metadata = {
+  title: 'Blog - Agence Beauchoix',
+  description: 'Nos derniers articles sur l\'IA, le No-Code et le développement SaaS.',
+};
 
 export default async function BlogIndex() {
   const articles = await getArticles();
@@ -103,39 +137,44 @@ export default async function BlogIndex() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {articles.map((article) => (
           <Link href={`/blog/${article.slug}`} key={article.id} className="group">
-            <article className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="relative h-48 w-full overflow-hidden">
+            <article className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 h-full flex flex-col">
+              <div className="relative h-48 w-full overflow-hidden bg-gray-100">
                 {article.thumbnail_url ? (
                   <Image
                     src={article.thumbnail_url}
                     alt={article.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">Pas d'image</div>
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    Pas d'image
+                  </div>
                 )}
-                <div className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                <div className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
                   {article.category}
                 </div>
               </div>
               
-              <div className="p-6">
-                <div className="flex items-center text-sm text-gray-500 mb-3 space-x-2">
-                  <span>{format(new Date(article.published_at), 'd MMMM yyyy', { locale: fr })}</span>
+              <div className="p-6 flex flex-col flex-grow">
+                <div className="flex items-center text-xs text-gray-500 mb-3 space-x-2">
+                  <time dateTime={article.published_at}>
+                    {format(new Date(article.published_at), 'd MMMM yyyy', { locale: fr })}
+                  </time>
                   <span>•</span>
-                  <span>{article.metadata.reading_time} min de lecture</span>
+                  <span>{article.metadata.reading_time} min</span>
                 </div>
                 
                 <h2 className="text-xl font-bold mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
                   {article.title}
                 </h2>
                 
-                <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+                <p className="text-gray-600 text-sm line-clamp-3 mb-4 flex-grow">
                   {article.excerpt}
                 </p>
                 
-                <span className="text-blue-600 font-medium text-sm inline-flex items-center">
+                <span className="text-blue-600 font-medium text-sm inline-flex items-center mt-auto">
                   Lire l'article →
                 </span>
               </div>
@@ -148,12 +187,10 @@ export default async function BlogIndex() {
 }
 ```
 
-## 5. Page : Article Détail (/blog/[slug])
-
-Créez `app/blog/[slug]/page.tsx`. C'est là que la magie opère.
+## 5. Page Détail Article (`app/blog/[slug]/page.tsx`)
 
 ```tsx
-import { db } from '@/lib/db';
+import { getArticle } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
@@ -161,8 +198,11 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Metadata } from 'next';
 
-// Génération des métadonnées SEO dynamiques
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+type Props = {
+  params: { slug: string }
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getArticle(params.slug);
   if (!article) return {};
 
@@ -171,23 +211,16 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     description: article.metadata.seo.description,
     keywords: article.metadata.seo.keywords,
     openGraph: {
+      title: article.metadata.seo.title,
+      description: article.metadata.seo.description,
       images: [article.thumbnail_url],
+      type: 'article',
+      publishedTime: article.published_at,
     },
   };
 }
 
-async function getArticle(slug: string) {
-  const res = await db.query(`
-    SELECT a.*, c.name as category 
-    FROM articles a
-    LEFT JOIN categories c ON a.category_id = c.id
-    WHERE a.slug = $1
-  `, [slug]);
-  
-  return res.rows[0];
-}
-
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function ArticlePage({ params }: Props) {
   const article = await getArticle(params.slug);
   
   if (!article) notFound();
@@ -205,11 +238,11 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           </span>
         </div>
         
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-gray-900 leading-tight">
+        <h1 className="text-3xl md:text-5xl font-extrabold mb-6 text-gray-900 leading-tight">
           {article.title}
         </h1>
 
-        <div className="text-lg text-gray-600 max-w-2xl mx-auto italic">
+        <div className="text-lg text-gray-600 max-w-2xl mx-auto italic border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 text-left">
           {article.excerpt}
         </div>
       </header>
@@ -231,42 +264,75 @@ export default async function ArticlePage({ params }: { params: { slug: string }
       <div className="prose prose-lg prose-blue max-w-none mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-gray-100">
         <ReactMarkdown
           components={{
-            // Custom styles pour les éléments Markdown si besoin
-            h2: ({node, ...props}) => <h2 className="text-3xl font-bold mt-12 mb-6 text-gray-800" {...props} />,
+            // Style custom pour les liens dans le corps du texte
+            a: ({node, ...props}) => (
+              <a 
+                {...props} 
+                className="text-blue-600 font-medium hover:underline decoration-2 underline-offset-2 transition-all" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              />
+            ),
+            h2: ({node, ...props}) => <h2 className="text-3xl font-bold mt-16 mb-6 text-gray-800 border-b pb-4" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-2xl font-bold mt-10 mb-4 text-gray-800" {...props} />,
             img: ({node, ...props}) => (
-              <div className="my-8 relative h-96 w-full rounded-xl overflow-hidden">
-                 {/* Gestion des images dans le markdown si nécessaire */}
-                 <img {...props} className="object-cover w-full h-full" />
+              <div className="my-8 relative h-96 w-full rounded-xl overflow-hidden shadow-md">
+                 <img {...props} className="object-cover w-full h-full" alt={props.alt || ''} />
               </div>
-            )
+            ),
+            blockquote: ({node, ...props}) => (
+              <blockquote className="border-l-4 border-blue-600 pl-6 italic text-gray-700 bg-blue-50 py-4 pr-4 rounded-r-lg my-8" {...props} />
+            ),
+            ul: ({node, ...props}) => <ul className="list-disc pl-6 space-y-2 my-6 text-gray-700" {...props} />,
+            li: ({node, ...props}) => <li className="pl-2" {...props} />,
           }}
         >
           {article.content}
         </ReactMarkdown>
       </div>
 
-      {/* Sources & Social Share */}
-      <div className="mt-12 p-8 bg-gray-50 rounded-2xl border border-gray-200">
-        <h3 className="font-bold text-gray-900 mb-4">📢 Partager cet article (Texte prêt à l'emploi)</h3>
-        <div className="bg-white p-4 rounded-lg border border-gray-300 text-sm text-gray-600 italic">
-          {article.metadata.social_post || "Génération du post en cours..."}
-        </div>
-        <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
-          Copier pour LinkedIn
-        </button>
+      {/* Social Share & Sources */}
+      <div className="mt-12 grid md:grid-cols-2 gap-8">
+        {/* Social Post */}
+        {article.metadata.social_post && (
+          <div className="p-6 bg-gray-50 rounded-2xl border border-gray-200">
+            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span>🐦</span> Prêt à partager ?
+            </h3>
+            <div className="bg-white p-4 rounded-lg border border-gray-300 text-sm text-gray-600 italic whitespace-pre-wrap">
+              {article.metadata.social_post}
+            </div>
+            <button className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+              Copier pour LinkedIn / X
+            </button>
+          </div>
+        )}
+
+        {/* Sources */}
+        {article.metadata.sources && article.metadata.sources.length > 0 && (
+          <div className="p-6 bg-white rounded-2xl border border-gray-200">
+            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span>📚</span> Sources & Références
+            </h3>
+            <ul className="space-y-3">
+              {article.metadata.sources.map((source, idx) => (
+                <li key={idx} className="text-sm">
+                  <a 
+                    href={source.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline flex items-start gap-2"
+                  >
+                    <span className="text-gray-400 mt-0.5">↗</span>
+                    <span>{source.titre}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </article>
   );
 }
 ```
-
-## ⚠️ Point Critique : Les Images
-
-Vos articles référencent des images (ex: `/images/mon-image.png`).
-Pour que Next.js puisse les afficher, elles doivent être accessibles.
-
-### Solution Recommandée (Volume Partagé)
-Si votre Agent et votre site Next.js sont hébergés au même endroit (ex: VPS, Railway), assurez-vous que le dossier où l'agent écrit les images est **monté** en tant que dossier `public/images` dans votre application Next.js.
-
-### Solution Alternative (S3 - Recommandé pour la Prod)
-Modifier l'agent `Thumbnail` pour qu'il upload directement sur AWS S3 ou Cloudinary et stocke l'URL absolue (`https://s3...`) dans la BDD au lieu du chemin local. C'est plus robuste si vous séparez le frontend du backend.
