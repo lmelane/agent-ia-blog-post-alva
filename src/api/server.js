@@ -10,6 +10,9 @@ import config from '../config.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy (Railway runs behind a reverse proxy)
+app.set('trust proxy', 1);
+
 // 1. Security Headers (Helmet)
 app.use(helmet());
 
