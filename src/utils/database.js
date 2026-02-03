@@ -118,7 +118,8 @@ export async function saveArticle(articleData) {
     excerpt,
     content,
     thumbnailFilename, // Used to build URL/Path
-    thumbnailPath, // Absolute storage path
+    thumbnailUrl, // Direct URL (Cloudinary or pre-built local URL)
+    thumbnailPath, // Absolute storage path (fallback)
     metadata,
   } = articleData;
 
@@ -126,11 +127,12 @@ export async function saveArticle(articleData) {
     // Resolve Category ID
     const categoryId = await getOrCreateCategory(category);
 
-    // Build URL (Absolute URL for NextJS frontend)
-    // Uses BASE_URL from config to create full URL like https://agent.beauchoix.fr/images/xxx.png
-    const baseUrl = config.baseUrl || '';
-    const relativePath = thumbnailFilename ? `/images/${thumbnailFilename}` : null;
-    const publicUrl = relativePath ? `${baseUrl}${relativePath}` : null;
+    // Use direct URL if provided (Cloudinary), otherwise build from filename
+    let publicUrl = thumbnailUrl;
+    if (!publicUrl && thumbnailFilename) {
+      const baseUrl = (config.baseUrl || '').replace(/\/$/, '');
+      publicUrl = `${baseUrl}/images/${thumbnailFilename}`;
+    }
 
     const result = await pool.query(
       `INSERT INTO articles (

@@ -107,6 +107,14 @@ ${topic.sources?.map((s, i) => `[${i + 1}] ${s.titre}: ${s.url}`).join('\n') || 
 - Chaque paragraphe doit être séparé par une ligne vide.
 - Les titres H2 doivent avoir une ligne vide avant ET après.
 
+🔗 LIENS HYPERTEXTE (SEO IMPORTANT):
+- Intègre 3 à 5 liens hypertexte DANS le corps de l'article (pas seulement en fin).
+- Utilise les URLs des sources fournies pour créer des liens contextuels.
+- Format Markdown : [texte du lien](https://url.com)
+- Exemple : "Selon [une étude récente de Gartner](https://gartner.com/...), l'IA va..."
+- Les liens doivent être naturels et apporter de la valeur au lecteur.
+- Privilégie les liens vers des sources autoritaires (études, docs officielles, articles de référence).
+
 STRUCTURE OBLIGATOIRE (${isTutorial ? 'Version Tutoriel' : 'Version Analyse'}):
 
 # [Titre Ultra-Accrocheur avec Bénéfice - ex: "Comment X nous a fait gagner Y"]

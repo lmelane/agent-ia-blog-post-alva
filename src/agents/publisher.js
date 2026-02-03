@@ -58,8 +58,8 @@ export class PublisherAgent {
         excerpt: frontMatter.excerpt || frontMatter.seo?.description,
         content: markdownContent, // Storing clean Markdown
         thumbnailFilename: frontMatter.thumbnail?.filename,
-        thumbnailPath: frontMatter.thumbnail?.localPath, // Storing the path
-        webflowItemId: null, // Not used anymore
+        thumbnailUrl: frontMatter.thumbnail?.url, // Direct URL (Cloudinary or local)
+        thumbnailPath: frontMatter.thumbnail?.localPath, // Storing the path (fallback)
         metadata: frontMatter, // Storing full metadata as JSONB
       });
 

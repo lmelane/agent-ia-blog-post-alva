@@ -4,6 +4,7 @@ import path from 'path';
 import logger from '../utils/logger.js';
 import config from '../config.js';
 import { geminiComplete } from '../utils/gemini-client.js';
+import { uploadBase64Image, isCloudinaryConfigured } from '../utils/cloudinary-client.js';
 
 /**
  * Thumbnail Agent - Generates article thumbnail images using Reve.com
@@ -156,18 +157,47 @@ Format: ${aspect}.`;
 
       logger.success('Thumbnail generated successfully');
       
-      // Save image to storage path
-      const filename = await this.saveBase64Image(data.image, articleSlug);
+      // Generate filename
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `${timestamp}-${articleSlug}.png`;
+      
+      // Try Cloudinary first, fallback to local storage
+      let imageUrl = null;
+      let localPath = null;
+      
+      if (isCloudinaryConfigured()) {
+        logger.info('☁️ Uploading to Cloudinary...');
+        try {
+          const cloudinaryResult = await uploadBase64Image(
+            data.image,
+            `${timestamp}-${articleSlug}`,
+            'blog-thumbnails'
+          );
+          imageUrl = cloudinaryResult.url;
+          logger.success(`☁️ Cloudinary URL: ${imageUrl}`);
+        } catch (cloudError) {
+          logger.warn('Cloudinary upload failed, falling back to local storage:', cloudError.message);
+        }
+      }
+      
+      // Fallback: save locally if Cloudinary not configured or failed
+      if (!imageUrl) {
+        await this.saveBase64ImageLocally(data.image, filename);
+        localPath = path.join(this.storagePath, filename);
+        // Use BASE_URL for local images
+        const baseUrl = (config.baseUrl || '').replace(/\/$/, '');
+        imageUrl = `${baseUrl}/images/${filename}`;
+      }
 
       return {
         success: true,
         thumbnail: {
           filename: filename,
-          // Nous retournons le chemin local pour l'instant, le Publisher gérera l'URL
-          localPath: path.join(this.storagePath, filename),
+          url: imageUrl, // Direct URL (Cloudinary or local)
+          localPath: localPath,
           prompt: prompt,
           generatedAt: new Date().toISOString(),
-          provider: 'reve.com',
+          provider: isCloudinaryConfigured() ? 'cloudinary' : 'local',
         }
       };
     } catch (error) {
@@ -177,16 +207,13 @@ Format: ${aspect}.`;
   }
 
   /**
-   * Save base64 image to file
+   * Save base64 image to local file (fallback)
    */
-  async saveBase64Image(base64Data, articleSlug) {
+  async saveBase64ImageLocally(base64Data, filename) {
     try {
       // Ensure storage directory exists
       await fs.mkdir(this.storagePath, { recursive: true });
 
-      // Generate filename
-      const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `${timestamp}-${articleSlug}.png`;
       const filePath = path.join(this.storagePath, filename);
 
       // Remove data:image/png;base64, prefix if present
@@ -200,7 +227,7 @@ Format: ${aspect}.`;
 
       return filename;
     } catch (error) {
-      logger.error('Failed to save base64 image', error);
+      logger.error('Failed to save base64 image locally', error);
       throw error;
     }
   }
