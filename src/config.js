@@ -32,6 +32,9 @@ export const config = {
     logsDir: './logs',
   },
 
+  // Base URL for absolute image URLs (your agent's public domain)
+  baseUrl: process.env.BASE_URL || '',
+
   // Scoring
   scoring: {
     minScoreToPublish: parseInt(process.env.MIN_SCORE_TO_PUBLISH || '70', 10),

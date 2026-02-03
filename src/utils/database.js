@@ -1,6 +1,7 @@
 import pg from 'pg';
 import logger from './logger.js';
 import config from '../config.js';
+// config.baseUrl is used to build absolute image URLs
 
 const { Pool } = pg;
 
@@ -125,12 +126,11 @@ export async function saveArticle(articleData) {
     // Resolve Category ID
     const categoryId = await getOrCreateCategory(category);
 
-    // Build URL (Public URL for NextJS)
-    // Assuming images are served via /images/filename
-    // Or if storing on a volume accessible by NextJS, NextJS needs to know the path or URL.
-    // The user mentioned "stocker l'URL de l'image directement depuis le volume".
-    // We'll store the relative URL for the frontend.
-    const publicUrl = thumbnailFilename ? `/images/${thumbnailFilename}` : null;
+    // Build URL (Absolute URL for NextJS frontend)
+    // Uses BASE_URL from config to create full URL like https://agent.beauchoix.fr/images/xxx.png
+    const baseUrl = config.baseUrl || '';
+    const relativePath = thumbnailFilename ? `/images/${thumbnailFilename}` : null;
+    const publicUrl = relativePath ? `${baseUrl}${relativePath}` : null;
 
     const result = await pool.query(
       `INSERT INTO articles (

@@ -93,6 +93,20 @@ ${topic.sources?.map((s, i) => `[${i + 1}] ${s.titre}: ${s.url}`).join('\n') || 
 - Ton : "Nous" (L'équipe Beauchoix). Bannir le "Je". Utilisez "Nous avons testé", "Notre avis".
 - Structure : Logique et fluide.
 
+⚠️ FORMATAGE MARKDOWN STRICT:
+- Les listes à puces DOIVENT être sur des lignes séparées avec un saut de ligne avant la liste.
+- Format correct:
+  
+  Voici les points clés :
+  
+  - Premier point
+  - Deuxième point
+  - Troisième point
+
+- JAMAIS de listes inline comme "* point1 * point2 * point3" sur une seule ligne.
+- Chaque paragraphe doit être séparé par une ligne vide.
+- Les titres H2 doivent avoir une ligne vide avant ET après.
+
 STRUCTURE OBLIGATOIRE (${isTutorial ? 'Version Tutoriel' : 'Version Analyse'}):
 
 # [Titre Ultra-Accrocheur avec Bénéfice - ex: "Comment X nous a fait gagner Y"]

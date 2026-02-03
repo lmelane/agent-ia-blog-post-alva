@@ -104,7 +104,14 @@ export async function perplexitySearchJSON(prompt, options = {}) {
       }
     }
 
-    const data = JSON.parse(jsonContent);
+    // Try to parse, if it fails, attempt to repair truncated JSON
+    let data;
+    try {
+      data = JSON.parse(jsonContent);
+    } catch (initialError) {
+      console.warn('Initial JSON parse failed, attempting repair...');
+      data = repairAndParseJSON(jsonContent);
+    }
 
     return {
       data,
@@ -115,8 +122,99 @@ export async function perplexitySearchJSON(prompt, options = {}) {
     };
   } catch (parseError) {
     console.error('Failed to parse Perplexity JSON response:', parseError);
-    console.error('Raw content:', result.content);
+    console.error('Raw content (first 500 chars):', result.content.substring(0, 500));
     throw new Error(`Failed to parse JSON from Perplexity response: ${parseError.message}`);
+  }
+}
+
+/**
+ * Attempt to repair and parse truncated/malformed JSON
+ * @param {string} jsonStr - Potentially malformed JSON string
+ * @returns {Object} Parsed JSON object
+ */
+function repairAndParseJSON(jsonStr) {
+  let repaired = jsonStr;
+  
+  // Remove trailing incomplete strings (e.g., truncated in the middle of a value)
+  // Find the last complete property by looking for patterns
+  const lastCompleteComma = repaired.lastIndexOf('",');
+  const lastCompleteBrace = repaired.lastIndexOf('"},');
+  const lastCompleteBracket = repaired.lastIndexOf('}],');
+  
+  const lastComplete = Math.max(lastCompleteComma, lastCompleteBrace, lastCompleteBracket);
+  
+  if (lastComplete > repaired.length * 0.5) {
+    // Truncate at the last complete point
+    repaired = repaired.substring(0, lastComplete + 1);
+  }
+  
+  // Count open brackets and braces
+  let openBraces = 0;
+  let openBrackets = 0;
+  let inString = false;
+  let escape = false;
+  
+  for (const char of repaired) {
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (char === '\\') {
+      escape = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (!inString) {
+      if (char === '{') openBraces++;
+      if (char === '}') openBraces--;
+      if (char === '[') openBrackets++;
+      if (char === ']') openBrackets--;
+    }
+  }
+  
+  // Close any unclosed strings (if we're still in a string)
+  if (inString) {
+    repaired += '"';
+  }
+  
+  // Close unclosed brackets and braces
+  while (openBrackets > 0) {
+    repaired += ']';
+    openBrackets--;
+  }
+  while (openBraces > 0) {
+    repaired += '}';
+    openBraces--;
+  }
+  
+  // Try to parse the repaired JSON
+  try {
+    return JSON.parse(repaired);
+  } catch (e) {
+    // Last resort: try to extract just the topics array if it exists
+    const topicsMatch = repaired.match(/"topics"\s*:\s*\[([\s\S]*)/);
+    if (topicsMatch) {
+      let topicsContent = topicsMatch[1];
+      // Find complete topic objects
+      const completeTopics = [];
+      const topicRegex = /\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g;
+      let match;
+      while ((match = topicRegex.exec(topicsContent)) !== null) {
+        try {
+          completeTopics.push(JSON.parse(match[0]));
+        } catch (e) {
+          // Skip malformed topic
+        }
+      }
+      if (completeTopics.length > 0) {
+        console.warn(`Recovered ${completeTopics.length} topics from malformed JSON`);
+        return { topics: completeTopics };
+      }
+    }
+    throw new Error('Unable to repair JSON: ' + e.message);
   }
 }
 
