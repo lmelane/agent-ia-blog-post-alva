@@ -231,6 +231,31 @@ export async function getArticleBySlug(slug) {
 }
 
 /**
+ * Remove Call-to-Action from all articles content
+ */
+export async function removeCtaFromAllArticles() {
+  try {
+    const result = await pool.query(`
+      UPDATE articles 
+      SET content = regexp_replace(
+        content, 
+        '\\*\\*Call-to-Action:\\*\\*[^\n]*', 
+        '', 
+        'gi'
+      )
+      WHERE content LIKE '%Call-to-Action%'
+      RETURNING id, slug
+    `);
+    
+    logger.info(`Removed CTA from ${result.rowCount} articles`);
+    return result.rows;
+  } catch (error) {
+    logger.error('Failed to remove CTA from articles', error);
+    return [];
+  }
+}
+
+/**
  * Check if article exists by slug
  */
 export async function articleExists(slug) {

@@ -162,8 +162,6 @@ ${isTutorial ? `
 ## Conclusion
 [Synthèse. Ouverture. Encouragement à tester.]
 
-**Call-to-Action:** [Lien vers Beauchoix : "Besoin d'aide pour intégrer ${topic.titre} dans votre MVP ? Nous pouvons le faire en 3 semaines."]
-
 ## Sources
 [Liste des sources]
 
@@ -320,11 +318,6 @@ ${isTutorial ? `
       issues.push('Missing Conclusion section');
     }
 
-    // Check for CTA
-    if (!article.match(/\*\*Call-to-Action:\*\*/i)) {
-      issues.push('Missing Call-to-Action');
-    }
-
     // Check for H2 sections
     const h2Count = (article.match(/^##\s+.+/gm) || []).length;
     if (h2Count < 5) {
@@ -342,7 +335,6 @@ ${isTutorial ? `
         h2Count,
         citationCount,
         hasFAQ: article.includes('## FAQ'),
-        hasCTA: article.includes('Call-to-Action'),
       },
     };
   }
