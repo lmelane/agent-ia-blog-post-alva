@@ -211,6 +211,21 @@ export async function getAllArticles(limit = 50) {
 }
 
 /**
+ * Get all article titles for duplicate detection
+ */
+export async function getAllArticleTitles() {
+  try {
+    const result = await pool.query(
+      `SELECT id, title, slug FROM articles ORDER BY created_at DESC`
+    );
+    return result.rows;
+  } catch (error) {
+    logger.error('Failed to get article titles', error);
+    return [];
+  }
+}
+
+/**
  * Get full article by slug
  */
 export async function getArticleBySlug(slug) {

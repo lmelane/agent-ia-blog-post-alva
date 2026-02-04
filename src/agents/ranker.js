@@ -129,13 +129,50 @@ export class RankerAgent {
   }
 
   /**
-   * Check if a topic is similar to already published articles
+   * Check if a topic is similar to already published articles (uses database)
    */
   async isDuplicate(topic) {
     try {
+      const { getAllArticleTitles } = await import('../utils/database.js');
+      const articles = await getAllArticleTitles();
+      
+      // Extract keywords from topic title (words > 3 chars, excluding common words)
+      const stopWords = ['pour', 'avec', 'dans', 'votre', 'comment', 'quoi', 'quel', 'quelle', 'cette', 'sont', 'plus', 'moins', 'tout', 'tous'];
+      const topicKeywords = topic.titre.toLowerCase()
+        .split(/\s+/)
+        .filter(word => word.length > 3 && !stopWords.includes(word));
+      
+      for (const article of articles) {
+        const articleTitle = article.title.toLowerCase();
+        const articleSlug = article.slug.replace(/-/g, ' ').toLowerCase();
+        
+        // Check against both title and slug
+        const matchingKeywords = topicKeywords.filter(keyword => 
+          articleTitle.includes(keyword) || articleSlug.includes(keyword)
+        );
+        
+        // If 3+ significant keywords match → duplicate
+        if (matchingKeywords.length >= 3) {
+          logger.warn(`Duplicate detected: "${topic.titre}" similar to "${article.title}"`);
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      logger.warn('Could not check for duplicates (DB)', error);
+      // Fallback to local files if DB fails
+      return this.isDuplicateLocal(topic);
+    }
+  }
+
+  /**
+   * Fallback: Check duplicates against local files
+   */
+  async isDuplicateLocal(topic) {
+    try {
       const articles = await fileManager.listArticles();
       
-      // Extract keywords from topic title
       const topicKeywords = topic.titre.toLowerCase()
         .split(/\s+/)
         .filter(word => word.length > 3);
@@ -152,14 +189,14 @@ export class RankerAgent {
         );
         
         if (matchingKeywords.length >= 3) {
-          logger.warn(`Duplicate detected: "${topic.titre}" similar to "${articleFile}"`);
+          logger.warn(`Duplicate detected (local): "${topic.titre}" similar to "${articleFile}"`);
           return true;
         }
       }
       
       return false;
     } catch (error) {
-      logger.warn('Could not check for duplicates', error);
+      logger.warn('Could not check for duplicates (local)', error);
       return false;
     }
   }
